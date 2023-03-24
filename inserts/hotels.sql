@@ -1,0 +1,12 @@
+INSERT INTO hotels (h_id, address) VALUES ('001', '598 Depaul Dr Minnesota United States 78045');
+INSERT INTO hotels (h_id, address) VALUES ('002', '5292 Marsh Ln Arkansas United States 80362');
+INSERT INTO hotels (h_id, address) VALUES ('003', '5905 Green Rd Louisiana United States 55302');        
+INSERT INTO hotels (h_id, address) VALUES ('004', '1831 Rolling Green Rd Hawaii United States 76818');   
+INSERT INTO hotels (h_id, address) VALUES ('005', '8692 Marsh Ln Maine United States 55392');
+INSERT INTO hotels (h_id, address) VALUES ('006', '3252 Crockett St Iowa United States 90709');
+INSERT INTO hotels (h_id, address) VALUES ('007', '6918 Wheeler Ridge Dr Maryland United States 10985'); 
+INSERT INTO hotels (h_id, address) VALUES ('008', '5048 Homestead Rd West Virginia United States 86474');
+INSERT INTO hotels (h_id, address) VALUES ('009', '8301 N Stelling Rd Iowa United States 33830');        
+INSERT INTO hotels (h_id, address) VALUES ('010', '9850 W Gray St Illinois United States 54310');        
+INSERT INTO hotels (h_id, address) VALUES ('011', '4383 Dogwood Ave Michigan United States 24362');      
+INSERT INTO hotels (h_id, address) VALUES ('012', '7005 Shady Ln Dr North Dakota United States 85648');

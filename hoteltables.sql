@@ -1,11 +1,11 @@
-DROP TABLE has; /** ammenities -- hotels */
-DROP TABLE contains; /** hotels <- rooms */
-DROP TABLE costs; /** rates -> hotels */
+DROP TABLE has;        /** ammenities -- hotels */
+DROP TABLE contains;   /** hotels <- rooms */
+DROP TABLE costs;      /** rates -> hotels */
 DROP TABLE represents; /** reservations <- transactions */
-DROP TABLE uses; /** rates <-> reservations */
-DROP TABLE res_type; /** reservations -> room_types */
-DROP TABLE reserves; /** reservations -> guests */
-DROP TABLE spends; /** transations -> guests */
+DROP TABLE uses;       /** rates <-> reservations */
+DROP TABLE res_type;   /** reservations -> room_types */
+DROP TABLE reserves;   /** reservations -> guests */
+DROP TABLE spends;     /** transations -> guests */
 DROP TABLE ammenities;
 DROP TABLE hotels;
 DROP TABLE rooms;
@@ -13,7 +13,7 @@ DROP TABLE room_types;
 DROP TABLE rates;
 DROP TABLE reservations;
 DROP TABLE transactions;
-DROP TABLE guests;
+DROP TABLE guests; -- filled
 
 CREATE TABLE ammenities (
     a_id VARCHAR(3),
@@ -23,7 +23,7 @@ CREATE TABLE ammenities (
 
 CREATE TABLE hotels (
     h_id VARCHAR(3),
-    address VARCHAR(50),
+    address VARCHAR(60),
     PRIMARY KEY(h_id)
 );
 
