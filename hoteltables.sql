@@ -6,14 +6,14 @@ DROP TABLE uses;       /** rates <-> reservations */
 DROP TABLE res_type;   /** reservations -> room_types */
 DROP TABLE reserves;   /** reservations -> guests */
 DROP TABLE spends;     /** transations -> guests */
-DROP TABLE ammenities;
-DROP TABLE hotels;
+DROP TABLE ammenities;   -- filled
+DROP TABLE hotels;       -- filled
 DROP TABLE rooms;
 DROP TABLE room_types;
 DROP TABLE rates;
 DROP TABLE reservations;
 DROP TABLE transactions;
-DROP TABLE guests; -- filled
+DROP TABLE guests;       -- filled
 
 CREATE TABLE ammenities (
     a_id VARCHAR(3),
@@ -69,7 +69,7 @@ CREATE TABLE guests (
     fname VARCHAR(20),
     lname VARCHAR(20),
     address VARCHAR(60),
-    email VARCHAR(50),
+    email VARCHAR(320), /* Section 3 says: (from erratum 1003) In addition to restrictions on syntax, there is a length limit on email addresses. That limit is a maximum of 64 characters (octets) in the "local part" (before the "@") and a maximum of 255 characters (octets) in the domain part (after the "@") for a total length of 320 characters. */
     phone_number VARCHAR(14), /* (xxx) xxx-xxxx */
     cc_number VARCHAR(19), /* xxxx xxxx xxxx xxxx */
     points NUMERIC(6, 0),
