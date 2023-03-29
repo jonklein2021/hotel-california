@@ -1,4 +1,4 @@
-DROP TABLE has;        /** ammenities -- hotels */
+DROP TABLE has;        /** ammenities -- hotels */          -- filled
 DROP TABLE contains;   /** hotels <- rooms */
 DROP TABLE costs;      /** rates -> hotels */
 DROP TABLE represents; /** reservations <- transactions */
@@ -9,10 +9,10 @@ DROP TABLE spends;     /** transations -> guests */
 DROP TABLE ammenities;   -- filled
 DROP TABLE hotels;       -- filled
 DROP TABLE rooms;
-DROP TABLE room_types;
-DROP TABLE rates;
-DROP TABLE reservations;
-DROP TABLE transactions;
+DROP TABLE room_types;   -- filled
+DROP TABLE rates;        -- 
+DROP TABLE reservations; -- filled
+DROP TABLE transactions; -- filled
 DROP TABLE guests;       -- filled
 
 CREATE TABLE ammenities (
@@ -50,17 +50,17 @@ CREATE TABLE reservations (
     res_id VARCHAR(5),
     in_time TIMESTAMP,
     out_time TIMESTAMP,
-    usd NUMERIC(5, 2),
-    points NUMERIC(7, 0),
-    cancellation_fee NUMERIC(2, 0),
+    usd NUMERIC(7, 2),
+    points NUMERIC(9, 0),
+    cancellation_fee NUMERIC(4, 0),
     PRIMARY KEY(res_id)
 );
 
 CREATE TABLE transactions (
     t_id VARCHAR(5),
     t_time TIMESTAMP,
-    usd NUMERIC(4, 2),
-    points NUMERIC(6, 0),
+    usd NUMERIC(6, 2),
+    points NUMERIC(8, 0),
     PRIMARY KEY(t_id)
 );
 
