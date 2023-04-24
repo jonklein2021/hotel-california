@@ -9,8 +9,6 @@ DECLARE
 BEGIN
     OPEN c;
     FETCH c INTO t, u;
-    
-    dbms_output.put_line('hello');
 
     WHILE c%found
     LOOP

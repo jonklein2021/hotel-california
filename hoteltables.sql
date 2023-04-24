@@ -8,9 +8,9 @@ DROP TABLE reserves;   /** reservations -> guests */
 DROP TABLE spends;     /** transations -> guests */
 DROP TABLE ammenities;   -- filled
 DROP TABLE hotels;       -- filled
-DROP TABLE rooms;
+DROP TABLE rooms;        -- filled
 DROP TABLE room_types;   -- filled
-DROP TABLE rates;        -- 
+DROP TABLE rates;        -- filled
 DROP TABLE reservations; -- filled
 DROP TABLE transactions; -- filled
 DROP TABLE guests;       -- filled
@@ -28,16 +28,16 @@ CREATE TABLE hotels (
 );
 
 CREATE TABLE rooms (
-    r_number NUMERIC(3, 0),
+    r_number VARCHAR(5), /* h_id + i in 100...199 */
     is_vacant NUMERIC(1, 0),
     is_clean NUMERIC(1, 0),
     PRIMARY KEY(r_number)
 );
 
 CREATE TABLE room_types (
-    r_type VARCHAR(20), /** single | deluxe | suite | presidential suite */
+    r_type VARCHAR(20), /* single | deluxe | suite | presidential suite */
     r_capacity NUMERIC(1, 0),
-    PRIMARY KEY(r_type, r_capacity) /** Necessary because capacity of each type is not standardized */
+    PRIMARY KEY(r_type, r_capacity) /* Necessary because capacity of each type is not standardized */
 );
 
 CREATE TABLE rates (
@@ -87,7 +87,7 @@ CREATE TABLE has (
 
 CREATE TABLE contains (
     h_id VARCHAR(3),
-    r_number NUMERIC(3, 0),
+    r_number VARCHAR(5),
     r_type VARCHAR(20),
     r_capacity NUMERIC(1, 0),
     PRIMARY KEY(h_id, r_number),
