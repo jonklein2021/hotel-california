@@ -1,0 +1,17 @@
+- Finish inserts
+- Add context to README
+    - 100 points = $1
+    - Freq guests: Earn 1000 points per night stayed and 100 points per other transactions
+    - Explain implemented interfaces
+- Java Program
+    - Log in
+    - Date & rate selection
+    - Create new customer
+- PL/SQL Stored Procedures
+    - Query to find all hotels given a city and date
+    - Query to create new customer
+    - Housekeeping trigger
+
+- Interfaces
+    - Customer online reservation access
+    - Housekeeping

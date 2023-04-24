@@ -41,8 +41,8 @@ CREATE TABLE room_types (
 );
 
 CREATE TABLE rates (
-    rate_usd NUMERIC(4, 2),
-    rate_points NUMERIC(6, 0),
+    rate_usd NUMERIC(5, 2),
+    rate_points NUMERIC(7, 0),
     PRIMARY KEY(rate_usd) /* Works fine because $1 = 100 points across all hotels **/
 );
 

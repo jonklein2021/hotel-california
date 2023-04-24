@@ -23,8 +23,6 @@ BEGIN
             u := 0;
         END IF;
         
---        dbms_output.put_line(lpad(i, 5, '0') ||' '||  t ||' '|| u ||' '|| p);        
-        
         INSERT INTO transactions (t_id, t_time, usd, points) VALUES (lpad(i, 5, '0'), t, u, p);
         i := i + 1;
         
