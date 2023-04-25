@@ -1,5 +1,5 @@
 DROP TABLE has;        /** ammenities -- hotels */          -- filled
-DROP TABLE contains;   /** hotels <- rooms */
+DROP TABLE contains;   /** hotels <- rooms */               -- filled
 DROP TABLE costs;      /** rates -> hotels */
 DROP TABLE represents; /** reservations <- transactions */
 DROP TABLE uses;       /** rates <-> reservations */

@@ -5,8 +5,6 @@ Suite: 30%
 Presidential Suite: 10%
 */
 
-SET SERVEROUTPUT ON;
-
 DECLARE
     rand INTEGER;
     room_size INTEGER;
@@ -24,7 +22,6 @@ BEGIN
         
         FOR j in 100..199
         LOOP
-        
             rand := round(DBMS_RANDOM.VALUE(1, 10));
             
             IF rand <= 2 THEN
