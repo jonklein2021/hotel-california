@@ -1,3 +1,8 @@
+/**
+ * @author Jon Klein
+ * Hotel California
+ */
+
 import java.sql.*;
 import java.util.Scanner;
 

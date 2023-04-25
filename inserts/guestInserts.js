@@ -33,7 +33,7 @@ const res = fetch(url, {
     'Content-Type' : 'application/json',
   },
 }).then(res => res.json()).then(data => (data.results).forEach((e, i) => {
-  console.log(`INSERT INTO guests (g_id, fname, lname, address, email, phone_number, cc_number, points) VALUES ('${String(i+1).padStart(5, '0')}', '${e.name.first}', '${e.name.last}', '${e.location.street.number} ${e.location.street.name} ${e.location.state} ${e.location.country} ${e.location.postcode}', '${e.email}', '${e.phone}', '${generateCC()}', ${generatePoints()});`);
+  console.log(`INSERT INTO guests (g_id, fname, lname, address, email, phone_number, cc_number, points) VALUES ('${String(i+1).padStart(5, '0')}', '${e.name.first}', '${e.name.last}', '${e.location.street.number} ${e.location.street.name}, ${e.location.city}, ${e.location.state} ${e.location.postcode}', '${e.email}', '${e.phone}', '${generateCC()}', ${generatePoints()});`);
 }));
 
 // document.getElementById('results').innerHTML = data.results;
