@@ -34,6 +34,8 @@ public class HotelCalifornia {
                     System.out.println("Welcome to the Hotel California! Please select an operation.");
                     System.out.println("1. Customer online reservation access");
                     System.out.println("2. Front-desk agent");
+                    System.out.println("3. Exit");
+                    
 
                     switch (s.nextLine()) {
                         case "1":
