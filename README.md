@@ -5,9 +5,8 @@
 ---
 
 ```
-cd src
-make
-java -jar HotelCalifornia.jar
+chmod 700 run.sh
+./run.sh
 ```
 
 Date of release: December 8, 1976
