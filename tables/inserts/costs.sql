@@ -1,0 +1,1 @@
+/*For each h_id, */SET SERVEROUTPUT ON;BEGIN    FOR i in 1..12    LOOP        dbms_output.put_line(lpad(i, 3, '0'));    END LOOP;END;

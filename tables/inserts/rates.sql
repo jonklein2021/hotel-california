@@ -1,4 +1,4 @@
-INSERT INTO rates (rate_usd, rate_points) VALUES (70, 7000);
-INSERT INTO rates (rate_usd, rate_points) VALUES (90, 9000);
-INSERT INTO rates (rate_usd, rate_points) VALUES (110, 11000);
-INSERT INTO rates (rate_usd, rate_points) VALUES (130, 13000);
+INSERT INTO rates (start_month, end_month, rate_usd, rate_points) VALUES (3, 5, 1.00, 1.00); -- base rate, check in is March - May (3:5)
+INSERT INTO rates (start_month, end_month, rate_usd, rate_points) VALUES (9, 9, 1.25, 1.20); -- 25% upcharge (20% for points), check in is during September (9)
+INSERT INTO rates (start_month, end_month, rate_usd, rate_points) VALUES (6, 8, 1.50, 1.40); -- 50% upcharge (40% for points), check in is June - August (6:8)
+INSERT INTO rates (start_month, end_month, rate_usd, rate_points) VALUES (10, 2, 0.8, 0.75); -- 20% discount (25% for points), check in is October - February (10:2)
