@@ -10,11 +10,11 @@ public class HotelCalifornia {
     public static void main(String[] args) {
         Scanner s = new Scanner(System.in);
         final String url = "jdbc:oracle:thin:@edgar1.cse.lehigh.edu:1521:cse241";
-        boolean noUser = true, running = true;
+        boolean master = true, running = true; // loop booleans
 
-        System.out.println("Welcome. Please login below.");
+        System.out.println("\nWelcome. Please login below.");
 
-        while (noUser) {
+        while (master) {
             final String dbUsername, dbPassword;
 
             System.out.print("Username: ");
@@ -22,21 +22,20 @@ public class HotelCalifornia {
             System.out.print("Password: ");
             dbPassword = s.nextLine();
 
-            System.out.println("Attempting connection...");
+            System.out.println("\nAttempting connection...");
 
             try (
                 Connection c = DriverManager.getConnection(url, dbUsername, dbPassword);
             ) {
-                noUser = false;
+                master = false;
                 System.out.println("Connection successful.\n");
 
                 while (running) {
                     System.out.println("Welcome to the Hotel California! Please select an operation.");
-                    System.out.println("1. Customer online reservation access");
-                    System.out.println("2. Front-desk agent");
-                    System.out.println("3. Exit");
+                    System.out.println("(1) Customer online reservation access");
+                    System.out.println("(2) Front-desk agent");
+                    System.out.println("(3) Exit");
                     
-
                     switch (s.nextLine()) {
                         case "1":
 
@@ -60,16 +59,19 @@ public class HotelCalifornia {
                             // Front-Desk agent
                             /*
                              * Agent enters customer name (and phone number if necessary)
-                             * Agent assigns that customer a room for some range of dates
+                             * Agent collects a range of dates
+                             * Agent assigns that customer a room sufficing that range of dates
                              */
 
                             System.out.println("Front Desk Agent");
                             System.out.println("==================================================");
 
+                            System.out.println("Welcome, Agent. Let's get started.");
+
                             break;
 
                         case "3":
-                            System.out.println("Thank you for choosing Hotel California™");
+                            System.out.println("Thank you for choosing Hotel California™.\nHave a good day!");
                             running = false;
                             break;
 
