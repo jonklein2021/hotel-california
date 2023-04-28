@@ -1,4 +1,4 @@
--- inserts into: reservations, transacitons, represents, res_type, spends, uses
+-- inserts into: reservations, transacitons, represents, reserves, res_type, spends, uses
 -- note: reservation is inserted AT OUT TIME because of misc transactions during guests' stays
 SET SERVEROUTPUT ON;
 
@@ -25,7 +25,7 @@ DECLARE
     u NUMBER; -- transaction usd
     p NUMBER; -- transaction points
     
-    g_id_i NUMBER;
+    g_id_i VARCHAR(5);
     
     rand INTEGER;
 BEGIN
@@ -115,6 +115,7 @@ BEGIN
         LOOP
             t := in_time_i + (DBMS_RANDOM.VALUE(0, EXTRACT (DAY FROM (out_time_i - in_time_i)))); -- random timestamp during the guest's stay
             rand := round(DBMS_RANDOM.VALUE(1, 10));
+            p := 0;
             u := DBMS_RANDOM.VALUE(1, 5)*10;
             IF rand >= 8 THEN
                 p := u*100;
@@ -124,6 +125,10 @@ BEGIN
             INSERT INTO represents (res_id, t_id) VALUES (res_id_i, lpad(t_i, 5, '0'));
             INSERT INTO spends (g_id, t_id) VALUES (g_id_i, lpad(t_i, 5, '0'));
             t_i := t_i + 1;
+            
+            -- add misc fees to reservaton total
+            usd_total := usd_total + u;
+            points_total := points_total + p;
         END LOOP;
         
         /* aggregation of transactions for ith reservation */
