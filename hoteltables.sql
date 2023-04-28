@@ -1,11 +1,11 @@
 DROP TABLE has;        /** ammenities -- hotels */          -- filled
 DROP TABLE contains;   /** hotels <- rooms */               -- filled
-DROP TABLE costs;      /** rates -> hotels */
+DROP TABLE costs;      /** rates -> hotels */               -- filled
 DROP TABLE represents; /** reservations <- transactions */  -- filled
-DROP TABLE uses;       /** rates <-> reservations */
-DROP TABLE res_type;   /** reservations -> room_types */
-DROP TABLE reserves;   /** reservations -> guests */
-DROP TABLE spends;     /** transations -> guests */
+DROP TABLE uses;       /** rates <-> reservations */        -- filled
+DROP TABLE res_type;   /** reservations -> room_types */    -- filled
+DROP TABLE reserves;   /** reservations -> guests */        -- filled
+DROP TABLE spends;     /** transations -> guests */         -- filled
 DROP TABLE ammenities;   -- filled
 DROP TABLE hotels;       -- filled
 DROP TABLE rooms;        -- filled
@@ -42,10 +42,10 @@ CREATE TABLE room_types (
 );
 
 CREATE TABLE rates (
-    start_month NUMERIC(2, 0),
-    end_month NUMERIC(2, 0),
-    rate_usd NUMERIC(5, 2),
-    rate_points NUMERIC(7, 0),
+    start_month NUMERIC(2, 0), /* 1-12 */
+    end_month NUMERIC(2, 0), /* 1-12 */
+    rate_usd NUMERIC(3, 2),
+    rate_points NUMERIC(3, 2),
     PRIMARY KEY(rate_usd) /* Valid because rate_usd -> rate_points */
 );
 
@@ -93,29 +93,28 @@ CREATE TABLE contains (
     h_id VARCHAR(3),
     r_number VARCHAR(5),
     r_type VARCHAR(20),
-    r_capacity NUMERIC(1, 0),
+--    r_capacity NUMERIC(1, 0),
     PRIMARY KEY(h_id, r_number),
     FOREIGN KEY(h_id) REFERENCES hotels,
     FOREIGN KEY(r_number) REFERENCES rooms,
-    FOREIGN KEY(r_type, r_capacity) REFERENCES room_types
+    FOREIGN KEY(r_type) REFERENCES room_types
 );
 
 CREATE TABLE costs (
     h_id VARCHAR(3),
-    rate_usd NUMERIC(5, 2),
+    rate_usd NUMERIC(3, 2),
     r_type VARCHAR(20),
-    r_capacity NUMERIC(1, 0),
     price_usd NUMERIC(3, 0),
-    PRIMARY KEY(h_id, rate_usd, r_type, r_capacity, price_usd),
+    PRIMARY KEY(h_id, rate_usd, r_type, price_usd),
     FOREIGN KEY(h_id) REFERENCES hotels,
     FOREIGN KEY(rate_usd) REFERENCES rates,
-    FOREIGN KEY(r_type, r_capacity) REFERENCES room_types
+    FOREIGN KEY(r_type) REFERENCES room_types
 );
 
 CREATE TABLE represents (
     res_id VARCHAR(5),
     t_id VARCHAR(5),
-    PRIMARY KEY(res_id), -- each reservation uniquely identifies a transaction
+    PRIMARY KEY(t_id), -- each transaction uniquely identifies a reservation
     FOREIGN KEY(res_id) REFERENCES reservations,
     FOREIGN KEY(t_id) REFERENCES transactions
 );
@@ -131,10 +130,10 @@ CREATE TABLE uses (
 CREATE TABLE res_type (
     res_id VARCHAR(5),
     r_type VARCHAR(20),
-    r_capacity NUMERIC(1, 0),
+--    r_capacity NUMERIC(1, 0),
     PRIMARY KEY(res_id),
     FOREIGN KEY(res_id) REFERENCES reservations,
-    FOREIGN KEY(r_type, r_capacity) REFERENCES room_types
+    FOREIGN KEY(r_type) REFERENCES room_types
 );
 
 CREATE TABLE reserves (

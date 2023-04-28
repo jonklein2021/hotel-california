@@ -35,7 +35,7 @@ BEGIN
                 room_size := 6;
             END IF;
         
-            INSERT INTO contains (h_id, r_number, r_type, r_capacity) VALUES (lpad(i, 3, '0'), lpad(i*1000+j, 5, '0'), room_type, room_size);
+            INSERT INTO contains (h_id, r_number, r_type) VALUES (lpad(i, 3, '0'), lpad(i*1000+j, 5, '0'), room_type);
         END LOOP;
     END LOOP;
 END;
