@@ -5,6 +5,9 @@
 
 ## Build Instructions
 
+1. Extract zip file and cd into this directory
+
+2. Execute the following commands:
 ```
 chmod 700 run.sh
 ./run.sh
