@@ -1,4 +1,4 @@
 #!/bin/bash
 
 make
-java -jar src/HotelCalifornia.jar
+java -jar src/Utilization.jar

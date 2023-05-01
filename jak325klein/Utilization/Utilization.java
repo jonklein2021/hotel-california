@@ -6,7 +6,7 @@
 import java.sql.*;
 import java.util.Scanner;
 
-public class HotelCalifornia {
+public class Utilization {
     public static void main(String[] args) {
         Scanner s = new Scanner(System.in);
         final String url = "jdbc:oracle:thin:@edgar1.cse.lehigh.edu:1521:cse241";

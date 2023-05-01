@@ -1,7 +1,7 @@
 all:
-	(cd src && javac HotelCalifornia.java)
-	(cd src && jar cfmv HotelCalifornia.jar Manifest.txt HotelCalifornia.class)
-	mv src/HotelCalifornia.jar .
+	(cd Utilization && javac Utilization.java)
+	(cd Utilization && jar cfmv Utilization.jar Manifest.txt Utilization.class)
+	mv Utilization/Utilization.jar .
 clean:
-	(cd src && rm -rf *.class)
-	(cd src && rm -rf HotelCalifornia.jar)
+	(cd Utilization && rm -rf *.class)
+	rm -rf Utilization.jar
