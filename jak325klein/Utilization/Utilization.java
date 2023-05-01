@@ -4,6 +4,7 @@
  */
 
 import java.sql.*;
+import java.time.*; // LocalDate work as SQL timestamp objects
 import java.util.Scanner;
 
 public class Utilization {
@@ -34,7 +35,8 @@ public class Utilization {
                     System.out.println("Welcome to the Hotel California! Please select an operation.");
                     System.out.println("(1) Customer online reservation access");
                     System.out.println("(2) Front-desk agent");
-                    System.out.println("(3) Exit");
+                    System.out.println("(3) Housekeeping interface");
+                    System.out.println("(4) Exit");
                     
                     switch (s.nextLine()) {
                         case "1":
@@ -68,20 +70,28 @@ public class Utilization {
 
                             System.out.println("Welcome, Agent. Let's get started.");
 
+
+                            break;
+                        case "3":
+
+                            System.out.println("Housekeeping Interface");
+                            System.out.println("==================================================");
+
+                            System.out.println("Good evening. Please enter your city.");
+
                             break;
 
-                        case "3":
+                        case "4":
                             System.out.println("Thank you for choosing Hotel California™.\nHave a good day!");
                             running = false;
                             break;
 
                         default:
-                            System.out.println("Invalid input. Please select 1 or 2.");
+                            System.out.println("Invalid input. Please only enter a number.");
                     }
                 }
                 
                 s.close();
-                c.close();
             } catch (SQLException e) {
                 if(e.getErrorCode() == 1017) {
                     // login error
@@ -90,10 +100,10 @@ public class Utilization {
                     // all other errors
                     System.err.println("Error: Something went wrong.\nStack trace:");
                     e.printStackTrace();
+                    s.close();
+                    System.exit(1);
                 };
-                System.exit(1);
             }
         }
-
     }
 }
