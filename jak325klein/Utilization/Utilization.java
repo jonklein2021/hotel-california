@@ -143,7 +143,7 @@ public class Utilization {
                     System.err.printf("No hotels in city \"%s\" found. Please try again.\n", city);
                 } else {
                     tryAgain = false;
-                    System.out.printf("%-7s%-10s%-10s\n", "Index", "Hotel ID", "Hotel Address");
+                    System.out.printf("\n%-7s%-10s%-10s\n", "Index", "Hotel ID", "Hotel Address");
                     do {
                         hotels.add(res1.getString("h_id"));
                         System.out.printf("%-7s%-10s%-10s\n", ++index, hotels.get(index-1), res1.getString("address"));
@@ -170,7 +170,7 @@ public class Utilization {
                 }
             }
 
-            System.out.println("Please enter the room numbers that you have cleaned separated by a space (ex: \"40129 40130 40131\")\nNote: Invalid rooms will not be altered");
+            System.out.println("\nPlease enter the room numbers that you have cleaned separated by a space (ex: \"40129 40130 40131\")\nNote: Invalid rooms will not be altered");
             String rooms = s.nextLine();
 
             roomsToClean = new ArrayList<>(Arrays.asList(rooms.split(" ")));
@@ -196,15 +196,16 @@ public class Utilization {
                 }
             }
 
-            System.out.println("\nCleaning...");
-
-            // set is_clean column in roomsToClean to 1 for all rooms
-            for (String room : roomsToClean) {
-                cleanRooms.setString(1, room);
-                cleanRooms.executeQuery();
+            if (roomsToClean.size() > 0) {
+                System.out.println("\nCleaning the following rooms:");
+                // set is_clean column in roomsToClean to 1 for all rooms
+                for (String room : roomsToClean) {
+                    System.out.print(room + " ");
+                    cleanRooms.setString(1, room);
+                    cleanRooms.executeQuery();
+                }
+                System.out.println("\nRooms cleaned successfully!");
             }
-
-            System.out.println("Rooms cleaned successfully!");
 
             if (badRooms.size() > 0) {
                 System.out.println("\nWARNING: The following rooms are either invalid, clean, or occupied and will not be altered:");
