@@ -9,7 +9,8 @@ CREATE OR REPLACE FUNCTION determineCostUsd (
     in_month INTEGER;
 BEGIN
      -- get room number
-    SELECT r_number INTO roomID FROM reservations WHERE res_id = rID;
+    SELECT r_number INTO roomID
+    FROM reservations WHERE res_id = rID;
     
     -- get room type
     SELECT r_type, price_usd INTO roomType, usdCost

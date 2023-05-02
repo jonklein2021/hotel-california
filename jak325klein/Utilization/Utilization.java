@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import javax.swing.Popup;
+
 public class Utilization {
     public static void main(String[] args) throws InterruptedException {
         Scanner s = new Scanner(System.in);
@@ -133,6 +135,7 @@ public class Utilization {
             PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
             PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ?");
+            CallableStatement getCost = c.prepareCall("{? = call determineCostUsd(?, ?)}");
         ) {
             String guestId = "00000", fname = "", lname = "";
             int guestPoints = 0;
@@ -198,7 +201,7 @@ public class Utilization {
 
             tryAgain = true;
             while (tryAgain) {
-                System.out.println("Please select an option below:");
+                System.out.println("\nPlease select an option below:");
                 System.out.println("(1) Check in");
                 System.out.println("(2) Check out");
                 System.out.println("(3) Back to main menu");
@@ -230,15 +233,24 @@ public class Utilization {
                             // no current reservations under this guest
                             System.err.println("There are no current reservations under this guest.");
                         } else {
+                            String res_id = res3.getString("res_id");
                             Timestamp inTime = res3.getTimestamp("in_time", null);
                             Timestamp outTime = res3.getTimestamp("out_time", null);
                             int duration = (int) (outTime.getTime()-inTime.getTime())/(1000*60*60*24);
+                            
+                            // calculate cost of stay
+                            getCost.registerOutParameter(1, Types.INTEGER);
+                            getCost.setString(2, res_id);
+                            getCost.setTimestamp(3, inTime);
+                            getCost.execute();
+                            int usdCost = getCost.getInt(1);
+                            int pointsCost = usdCost*100;
 
                             // send reservation to stdout
-                            System.out.printf("%-15s%-15s%-10s\n", "Start Date", "End Date", "Duration (Days)");
-                            System.out.printf("%-15s%-15s%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration);
+                            System.out.printf("%-15s%-15s%-10s%-10s%-10s\n", "Start Date", "End Date", "Duration (Days)", "USD Total", "Points Total");
+                            System.out.printf("%-15s%-15s%-10d%-10d%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration, usdCost, pointsCost);
 
-                            System.out.print("\nType Y to confirm the check-out for reservation above or anything else to cancel: ");
+                            System.out.print("\nType Y to confirm the check-out for reservation above and type anything else to cancel: ");
                             switch (s.nextLine().toLowerCase()) {
                                 case "y":
                                     tryAgain = false;
@@ -251,18 +263,21 @@ public class Utilization {
                                         System.out.printf("You have %d points. Type Y to use them to pay for today's reservation and type anything else to continue with usd.", guestPoints);
                                         switch (s.nextLine().toLowerCase()) {
                                             case "y":
-                                                
                                                 boolean tryAgainPoints = true;
                                                 while (tryAgainPoints) {
                                                     try {
                                                         System.out.println("Please enter the number of points you would like to use");
                                                         pointsPaid = Integer.valueOf(s.nextLine());
-                                                        if (pointsPaid > 0 && pointsPaid <= guestPoints) {
+                                                        if (pointsPaid > 0 && pointsPaid <= guestPoints && pointsPaid <= pointsCost) {
                                                             // input is valid
+                                                            tryAgainPoints = false;
+                                                            usdPaid = usdCost-pointsPaid*100; // remaining usd
+                                                        } else {
+                                                            throw new NumberFormatException();
                                                         }
                                                         
                                                     } catch (NumberFormatException e) {
-                                                        System.err.printf("Input Error: Please enter a valid integer. You have %d points to spend. ", guestPoints);
+                                                        System.err.printf("Input Error: Please enter a number in the range [%d, %d]\n", guestPoints, pointsCost);
                                                     }
                                                 }
 
