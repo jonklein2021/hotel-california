@@ -247,8 +247,8 @@ public class Utilization {
                             int pointsCost = usdCost*100;
 
                             // send reservation to stdout
-                            System.out.printf("%-15s%-15s%-10s%-10s%-10s\n", "Start Date", "End Date", "Duration (Days)", "USD Total", "Points Total");
-                            System.out.printf("%-15s%-15s%-10d%-10d%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration, usdCost, pointsCost);
+                            System.out.printf("%-15s%-15s%-10s%-10s%-10s\n", "Start Date", "End Date", "Duration", "USD", "Points");
+                            System.out.printf("%-15s%-15s%-10s%-10d%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration + " days", usdCost, pointsCost);
 
                             System.out.print("\nType Y to confirm the check-out for reservation above and type anything else to cancel: ");
                             switch (s.nextLine().toLowerCase()) {
