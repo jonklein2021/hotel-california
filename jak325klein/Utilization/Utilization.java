@@ -7,11 +7,10 @@ import java.sql.*;
 import java.time.*; // LocalDate work as SQL timestamp objects
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Utilization {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Scanner s = new Scanner(System.in);
         final String url = "jdbc:oracle:thin:@edgar1.cse.lehigh.edu:1521:cse241";
         boolean master = true, running = true; // loop booleans
@@ -29,17 +28,22 @@ public class Utilization {
             // hide password from lurkers (caleb)
             System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
 
-            System.out.println("Attempting connection...");
+            System.out.print("Attempting connection");
+            Thread.sleep(200); // dramatic pause
+            System.out.print(".");
+            Thread.sleep(200); // dramatic pause
+            System.out.print(".");
+            Thread.sleep(200); // dramatic pause
+            System.out.print(".");
 
             try (
                 Connection c = DriverManager.getConnection(url, dbUsername, dbPassword);
             ) {
                 master = false;
-                System.out.println("Connection successful.\n");
-                Thread.sleep(500); // dramatic pause
+                System.out.println("\nConnection successful.");
 
                 while (running) {
-                    System.out.println("Welcome to the Hotel California! Please select an operation.");
+                    System.out.println("\nWelcome to the Hotel California! Please select an operation.");
                     System.out.println("(1) Customer online reservation access");
                     System.out.println("(2) Front-desk agent");
                     System.out.println("(3) Housekeeping interface");
@@ -65,7 +69,7 @@ public class Utilization {
                     
                         case "2":
 
-                            // Front-Desk agent
+                            // Front-Desk Agent
                             /*
                              * Agent enters customer name (and phone number if necessary)
                              * Agent collects a range of dates
@@ -76,10 +80,16 @@ public class Utilization {
                             System.out.println("==================================================");
 
                             System.out.println("Welcome, Agent. Let's get started.");
-
+                            deskAgent(s, c);
 
                             break;
+
                         case "3":
+
+                        // Housekeeping Interface
+                        /*
+                         * Logs a room as cleaned in DB after a room has been cleaned in a particular hotel
+                         */
 
                             System.out.println("Housekeeping Interface");
                             System.out.println("==================================================");
@@ -116,6 +126,88 @@ public class Utilization {
                 e.printStackTrace();
                 System.exit(1);
             }
+        }
+    }
+
+    public static void deskAgent(Scanner s, Connection c) {
+        try (
+            PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
+            PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
+        ) {
+            String fname, lname;
+            Timestamp now = new Timestamp(System.currentTimeMillis()); // 12/08/1976 @ 4pm
+            int count = 0;
+            boolean tryAgain = true;
+
+            while (tryAgain) {
+                System.out.print("Please enter guest's first name: ");
+                fname = s.nextLine();
+                System.out.print("Please enter guest's last name: ");
+                lname = s.nextLine();
+
+                System.out.printf("Searching for %s %s...\n", fname, lname);
+                findGuestByName.setString(1, fname);
+                findGuestByName.setString(2, lname);
+                ResultSet res1 = findGuestByName.executeQuery();
+
+                if (!res1.next()) {
+                    System.err.printf("No guests found under the name \"%s %s\". Please try again", fname, lname);
+                } else {
+                    tryAgain = false;
+                    System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
+                    do {
+                        System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", res1.getString("g_id"), res1.getString("fname"), res1.getString("lname"), res1.getString("phone_number"), res1.getString("points"));
+                        count++;
+                    } while (res1.next());
+                }
+
+                System.out.println("");
+
+                if (count > 1) { // there exist multiple guests with the same first and last name
+                    tryAgain = true;
+                    while (tryAgain) {   
+                        System.out.printf("Which %s %s would you like to select?\nEnter a phone number in the format \"(###) ###-####\": ", fname, lname);
+                        String phone = s.nextLine();
+                        if (phone.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
+                            System.out.printf("Searching for %s %s with phone number %s...\n", fname, lname, phone);
+                            findGuestByNameAndPhone.setString(1, fname);
+                            findGuestByNameAndPhone.setString(2, lname);
+                            findGuestByNameAndPhone.setString(3, phone);
+                            ResultSet res2 = findGuestByNameAndPhone.executeQuery();
+
+                            if (!res2.next()) {
+                                System.err.printf("No guests found under the name \"%s %s\" with phone number %s. Please try again", fname, lname, phone);
+                            } else {
+                                tryAgain = false;
+                                System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
+                                do {
+                                    System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", res2.getString("g_id"), res2.getString("fname"), res2.getString("lname"), res2.getString("phone_number"), res2.getString("points"));
+                                } while (res2.next());
+                            }
+                        } else {
+                            System.out.println("Invalid format. Please try again.\n");
+                        }
+                    }
+                }
+                
+                /* 
+                 * TODO:
+                 * collect start and end date for reservation
+                 * call PL/SQL procedure to add
+                 */
+            }
+
+
+            
+        } catch (SQLException e) {
+            System.err.println("SQL Error: Something went wrong.\nStack trace:");
+            e.printStackTrace();
+            s.close();
+            System.exit(1);
+        } catch (Exception e) {
+            System.err.println("Error: Something went wrong.\nStack trace:");
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -202,17 +294,17 @@ public class Utilization {
                 for (String room : roomsToClean) {
                     System.out.print(room + " ");
                     cleanRooms.setString(1, room);
-                    cleanRooms.executeQuery();
+                    cleanRooms.executeUpdate();
                 }
-                System.out.println("\nRooms cleaned successfully!");
+                System.out.println("\nRooms cleaned successfully!\n");
             }
 
             if (badRooms.size() > 0) {
-                System.out.println("\nWARNING: The following rooms are either invalid, clean, or occupied and will not be altered:");
+                System.out.println("WARNING: The following rooms are either invalid, clean, or occupied and will not be altered:");
                 for (String room : badRooms) {
                     System.out.print(room + " ");
                 }
-                System.out.println("");
+                System.out.println("\n");
             }
             
         } catch (SQLException e) {

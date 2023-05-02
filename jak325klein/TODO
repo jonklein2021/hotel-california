@@ -1,16 +1,14 @@
-- Add context to README
+- Add to README
     - 100 points = $1
     - Freq guests: Earn 1000 points per night stayed and 100 points per other transactions
     - Explain implemented interfaces
     - Explain how room numbers work?
     - There is one guest duplicate: Mike Kaufman (045, 055)
-- Java Program
-- PL/SQL Stored Procedures
-    - Query to find all hotels given a city and date
-    - Query to create new customer
-    - Housekeeping trigger
 
-- Interfaces
-    - Customer online reservation access
-    - Front desk agent
-    - Housekeeping
+- PL/SQL Stored Procedures
+    - Create query to find all hotels given a city and date
+    - Create query to create new customer
+    - Create housekeeping trigger
+
+- Java program
+    - Allow loopback to main menu during interfaces
