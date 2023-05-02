@@ -135,6 +135,7 @@ public class Utilization {
             PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ?");
         ) {
             String guestId = "00000", fname = "", lname = "";
+            int guestPoints = 0;
             Timestamp now = new Timestamp(218908800000L); // 12/08/1976 @ 4pm
             int guestCount = 0;
             boolean tryAgain = true;
@@ -157,7 +158,8 @@ public class Utilization {
                     System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
                     do {
                         guestId = res1.getString("g_id");
-                        System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res1.getString("fname"), res1.getString("lname"), res1.getString("phone_number"), res1.getString("points"));
+                        guestPoints = res1.getInt("points");
+                        System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res1.getString("fname"), res1.getString("lname"), res1.getString("phone_number"), guestPoints);
                         guestCount++;
                     } while (res1.next());
                 }
@@ -184,7 +186,8 @@ public class Utilization {
                             System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
                             do {
                                 guestId = res2.getString("g_id");
-                                System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res2.getString("fname"), res2.getString("lname"), res2.getString("phone_number"), res2.getString("points"));
+                                guestPoints = res2.getInt("points");
+                                System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res2.getString("fname"), res2.getString("lname"), res2.getString("phone_number"), guestPoints);
                             } while (res2.next());
                         }
                     } else {
@@ -235,28 +238,49 @@ public class Utilization {
                             System.out.printf("%-15s%-15s%-10s\n", "Start Date", "End Date", "Duration (Days)");
                             System.out.printf("%-15s%-15s%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration);
 
-                            boolean otherTryAgain = true;
-                            while (otherTryAgain) {
-                                System.out.print("\nType Y to confirm the check-out for reservation above or N to cancel: ");
-                                switch (s.nextLine().toLowerCase()) {
+                            System.out.print("\nType Y to confirm the check-out for reservation above or anything else to cancel: ");
+                            switch (s.nextLine().toLowerCase()) {
                                 case "y":
-                                    otherTryAgain = false;
                                     tryAgain = false;
-                                    // set room as vacant
+
+                                    int usdPaid, pointsPaid;
+                                    
+                                    // determine payment method
+                                    if (guestPoints > 0) {
+                                        // ask if guest would like to use points
+                                        System.out.printf("You have %d points. Type Y to use them to pay for today's reservation and type anything else to continue with usd.", guestPoints);
+                                        switch (s.nextLine().toLowerCase()) {
+                                            case "y":
+                                                
+                                                boolean tryAgainPoints = true;
+                                                while (tryAgainPoints) {
+                                                    try {
+                                                        System.out.println("Please enter the number of points you would like to use");
+                                                        pointsPaid = Integer.valueOf(s.nextLine());
+                                                        if (pointsPaid > 0 && pointsPaid <= guestPoints) {
+                                                            // input is valid
+                                                        }
+                                                        
+                                                    } catch (NumberFormatException e) {
+                                                        System.err.printf("Input Error: Please enter a valid integer. You have %d points to spend. ", guestPoints);
+                                                    }
+                                                }
+
+                                                break;
+
+                                            default:
+                                                break;
+                                        }
+                                    }
                                     
                                     break;
                             
-                                case "n":
+                                default:
                                     // return to agent menu
                                     System.out.println("Check-out request cancelled successfully.");
                                     break;
-                                    
-                                default:
-                                    otherTryAgain = false;
-                                    System.out.println("Invalid input. Please try again.");
-                                    break;
-                                }
                             }
+                            
                         }
                         
                         break;
