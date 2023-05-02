@@ -3,8 +3,7 @@
  * Hotel California
  */
 
-import java.sql.*;
-import java.time.*; // LocalDate work as SQL timestamp objects
+import java.sql.*; // LocalDate work as SQL timestamp objects
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -113,7 +112,7 @@ public class Utilization {
             } catch (SQLException e) {
                 if(e.getErrorCode() == 1017) {
                     // login error
-                    System.err.println("SQL Error: Wrong username/password. Please try again.");
+                    System.err.println("\nSQL Error: Wrong username/password. Please try again.");
                 } else {
                     // all other SQL errors
                     System.err.println("SQL Error: Something went wrong.\nStack trace:");
@@ -133,10 +132,11 @@ public class Utilization {
         try (
             PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
+            PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ?");
         ) {
-            String fname, lname;
-            Timestamp now = new Timestamp(System.currentTimeMillis()); // 12/08/1976 @ 4pm
-            int count = 0;
+            String guestId = "00000", fname = "", lname = "";
+            Timestamp now = new Timestamp(218908800000L); // 12/08/1976 @ 4pm
+            int guestCount = 0;
             boolean tryAgain = true;
 
             while (tryAgain) {
@@ -156,45 +156,118 @@ public class Utilization {
                     tryAgain = false;
                     System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
                     do {
-                        System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", res1.getString("g_id"), res1.getString("fname"), res1.getString("lname"), res1.getString("phone_number"), res1.getString("points"));
-                        count++;
+                        guestId = res1.getString("g_id");
+                        System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res1.getString("fname"), res1.getString("lname"), res1.getString("phone_number"), res1.getString("points"));
+                        guestCount++;
                     } while (res1.next());
                 }
+            }
 
-                System.out.println("");
+            System.out.println("");
 
-                if (count > 1) { // there exist multiple guests with the same first and last name
-                    tryAgain = true;
-                    while (tryAgain) {   
-                        System.out.printf("Which %s %s would you like to select?\nEnter a phone number in the format \"(###) ###-####\": ", fname, lname);
-                        String phone = s.nextLine();
-                        if (phone.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
-                            System.out.printf("Searching for %s %s with phone number %s...\n", fname, lname, phone);
-                            findGuestByNameAndPhone.setString(1, fname);
-                            findGuestByNameAndPhone.setString(2, lname);
-                            findGuestByNameAndPhone.setString(3, phone);
-                            ResultSet res2 = findGuestByNameAndPhone.executeQuery();
+            if (guestCount > 1) { // there exist multiple guests with the same first and last name (only happens for Mike Kaufman)
+                tryAgain = true;
+                while (tryAgain) {   
+                    System.out.printf("Which %s %s would you like to select?\nEnter a phone number in the format \"(###) ###-####\": ", fname, lname);
+                    String phone = s.nextLine();
+                    if (phone.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
+                        System.out.printf("Searching for %s %s with phone number %s...\n", fname, lname, phone);
+                        findGuestByNameAndPhone.setString(1, fname);
+                        findGuestByNameAndPhone.setString(2, lname);
+                        findGuestByNameAndPhone.setString(3, phone);
+                        ResultSet res2 = findGuestByNameAndPhone.executeQuery();
 
-                            if (!res2.next()) {
-                                System.err.printf("No guests found under the name \"%s %s\" with phone number %s. Please try again", fname, lname, phone);
-                            } else {
-                                tryAgain = false;
-                                System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
-                                do {
-                                    System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", res2.getString("g_id"), res2.getString("fname"), res2.getString("lname"), res2.getString("phone_number"), res2.getString("points"));
-                                } while (res2.next());
-                            }
+                        if (!res2.next()) {
+                            System.err.printf("No guests found under the name \"%s %s\" with phone number %s. Please try again", fname, lname, phone);
                         } else {
-                            System.out.println("Invalid format. Please try again.\n");
+                            tryAgain = false;
+                            System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
+                            do {
+                                guestId = res2.getString("g_id");
+                                System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res2.getString("fname"), res2.getString("lname"), res2.getString("phone_number"), res2.getString("points"));
+                            } while (res2.next());
                         }
+                    } else {
+                        System.out.println("Invalid format. Please try again.\n");
                     }
                 }
-                
-                /* 
-                 * TODO:
-                 * collect start and end date for reservation
-                 * call PL/SQL procedure to add
-                 */
+            }
+
+            tryAgain = true;
+            while (tryAgain) {
+                System.out.println("Please select an option below:");
+                System.out.println("(1) Check in");
+                System.out.println("(2) Check out");
+                System.out.println("(3) Back to main menu");
+
+                switch (s.nextLine()) {
+                    case "1":
+                        // check in
+                        /* TODO:
+                            * collect start and end date for reservation
+                            * call PL/SQL procedure to check guest in (assign room of proper room_type to that guest and mark as occupied)
+                            */
+                        tryAgain = false;
+                        break;
+                        
+                    case "2":
+                        // check out
+                        /* TODO:
+                            * ensure guest is currently checked in
+                            * call PL/SQL procedure to mark room as unclean and vacant
+                            */
+
+                        System.out.println("Searching for currently active reservations...\n");
+                        findReservationByGuest.setTimestamp(1, now, null);
+                        findReservationByGuest.setTimestamp(2, now, null);
+                        findReservationByGuest.setString(3, guestId);
+
+                        ResultSet res3 = findReservationByGuest.executeQuery();
+                        if (!res3.next()) {
+                            // no current reservations under this guest
+                            System.err.println("There are no current reservations under this guest.");
+                        } else {
+                            Timestamp inTime = res3.getTimestamp("in_time", null);
+                            Timestamp outTime = res3.getTimestamp("out_time", null);
+                            int duration = (int) (outTime.getTime()-inTime.getTime())/(1000*60*60*24);
+
+                            // send reservation to stdout
+                            System.out.printf("%-15s%-15s%-10s\n", "Start Date", "End Date", "Duration (Days)");
+                            System.out.printf("%-15s%-15s%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration);
+
+                            boolean otherTryAgain = true;
+                            while (otherTryAgain) {
+                                System.out.print("\nType Y to confirm the check-out for reservation above or N to cancel: ");
+                                switch (s.nextLine().toLowerCase()) {
+                                case "y":
+                                    otherTryAgain = false;
+                                    tryAgain = false;
+                                    // set room as vacant
+                                    
+                                    break;
+                            
+                                case "n":
+                                    // return to agent menu
+                                    System.out.println("Check-out request cancelled successfully.");
+                                    break;
+                                    
+                                default:
+                                    otherTryAgain = false;
+                                    System.out.println("Invalid input. Please try again.");
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        break;
+
+                    case "3":
+                        return;
+                    
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                        break;
+                }
             }
 
 

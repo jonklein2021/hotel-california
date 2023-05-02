@@ -10,7 +10,7 @@ make
 java -jar Utilization.jar
 ```
 
-### IMPORTANT: This build is intended for Lehigh sunlab machines only.
+#### **IMPORTANT: This build is intended for Lehigh sunlab machines only.**
 
 ## Interfaces
 
