@@ -136,6 +136,7 @@ public class Utilization {
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
             PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ?");
             CallableStatement getCost = c.prepareCall("{? = call determineCostUsd(?, ?)}");
+            CallableStatement performCheckOut = c.prepareCall("{call checkOutGuest(?, ?, ?, ?, ?)}");
         ) {
             String guestId = "00000", fname = "", lname = "";
             int guestPoints = 0;
@@ -155,7 +156,7 @@ public class Utilization {
                 ResultSet res1 = findGuestByName.executeQuery();
 
                 if (!res1.next()) {
-                    System.err.printf("No guests found under the name \"%s %s\". Please try again", fname, lname);
+                    System.err.printf("No guests found under the name \"%s %s\". Please try again\n", fname, lname);
                 } else {
                     tryAgain = false;
                     System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
@@ -218,10 +219,6 @@ public class Utilization {
                         
                     case "2":
                         // check out
-                        /* TODO:
-                            * ensure guest is currently checked in
-                            * call PL/SQL procedure to mark room as unclean and vacant
-                            */
 
                         System.out.println("Searching for currently active reservations...\n");
                         findReservationByGuest.setTimestamp(1, now, null);
@@ -243,49 +240,59 @@ public class Utilization {
                             getCost.setString(2, res_id);
                             getCost.setTimestamp(3, inTime);
                             getCost.execute();
-                            int usdCost = getCost.getInt(1);
-                            int pointsCost = usdCost*100;
+                            float usdCost = getCost.getFloat(1);
+                            int pointsCost = (int) usdCost*100;
 
                             // send reservation to stdout
                             System.out.printf("%-15s%-15s%-10s%-10s%-10s\n", "Start Date", "End Date", "Duration", "USD", "Points");
-                            System.out.printf("%-15s%-15s%-10s%-10d%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration + " days", usdCost, pointsCost);
+                            System.out.printf("%-15s%-15s%-10s%-10.2f%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration + " days", usdCost, pointsCost);
 
                             System.out.print("\nType Y to confirm the check-out for reservation above and type anything else to cancel: ");
                             switch (s.nextLine().toLowerCase()) {
                                 case "y":
                                     tryAgain = false;
 
-                                    int usdPaid, pointsPaid;
+                                    float usdPaid = usdCost;
+                                    int pointsPaid = 0;
                                     
-                                    // determine payment method
                                     if (guestPoints > 0) {
                                         // ask if guest would like to use points
-                                        System.out.printf("You have %d points. Type Y to use them to pay for today's reservation and type anything else to continue with usd.", guestPoints);
+                                        System.out.printf("You have %d points. Type Y to use them to pay for today's reservation and type anything else to continue with usd: ", guestPoints);
                                         switch (s.nextLine().toLowerCase()) {
                                             case "y":
                                                 boolean tryAgainPoints = true;
                                                 while (tryAgainPoints) {
                                                     try {
-                                                        System.out.println("Please enter the number of points you would like to use");
+                                                        System.out.print("Please enter the number of points you would like to use: ");
                                                         pointsPaid = Integer.valueOf(s.nextLine());
                                                         if (pointsPaid > 0 && pointsPaid <= guestPoints && pointsPaid <= pointsCost) {
                                                             // input is valid
                                                             tryAgainPoints = false;
-                                                            usdPaid = usdCost-pointsPaid*100; // remaining usd
+                                                            usdPaid -= ((float) pointsPaid/100); // remaining usd to pay
                                                         } else {
                                                             throw new NumberFormatException();
                                                         }
                                                         
                                                     } catch (NumberFormatException e) {
-                                                        System.err.printf("Input Error: Please enter a number in the range [%d, %d]\n", guestPoints, pointsCost);
+                                                        System.err.printf("Input Error: Please enter a valid number in the range [%d, %d]\n", guestPoints, pointsCost);
                                                     }
                                                 }
 
                                                 break;
 
                                             default:
+                                                // pay with usd
                                                 break;
                                         }
+
+                                        // perform checkout procedure
+                                        performCheckOut.setString(1, res_id);
+                                        performCheckOut.setTimestamp(2, inTime);
+                                        performCheckOut.setTimestamp(3, outTime);
+                                        performCheckOut.setFloat(4, usdPaid);
+                                        performCheckOut.setInt(5, pointsPaid);
+                                        performCheckOut.execute();
+                                        System.out.println("Checkout successful.");
                                     }
                                     
                                     break;

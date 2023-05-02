@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION determineCostUsd (
     rID IN VARCHAR,
-    inTime IN TIMESTAMP) RETURN INTEGER AS
+    inTime IN TIMESTAMP) RETURN FLOAT AS
     roomID VARCHAR(5);
     roomType VARCHAR(20);
     usdMultiplier NUMERIC(3, 2);
@@ -21,7 +21,7 @@ BEGIN
     in_month := EXTRACT(MONTH FROM inTime);
     SELECT rate_usd, rate_points INTO usdMultiplier, pointsMultiplier FROM rates
     WHERE (start_month <= end_month AND in_month >= start_month AND in_month <= end_month) OR
-        (start_month > end_month AND (in_month >= start_month AND in_month <= 12) OR (in_month >= 1 AND in_month <= end_month));
+        (start_month > end_month AND ((in_month >= start_month AND in_month <= 12) OR (in_month >= 1 AND in_month <= end_month)));
         
     RETURN usdCost;
 
