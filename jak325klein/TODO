@@ -12,3 +12,4 @@
 
 - Java program
     - Allow loopback to main menu during interfaces
+    - Insert into res_type, uses when necessary

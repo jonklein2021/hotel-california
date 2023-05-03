@@ -137,9 +137,11 @@ public class Utilization {
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
             PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ? AND r_number = '00000'");
             CallableStatement performCheckIn = c.prepareCall("{? = call handleCheckin(?, ?, ?, ?)}");
+            CallableStatement performWalkIn = c.prepareCall("{? = call handleWalkin(?, ?, ?, ?, ?)}");
             CallableStatement getCost = c.prepareCall("{? = call determinePrice(?, ?)}");
             CallableStatement performCheckOut = c.prepareCall("{call handleCheckout(?, ?, ?, ?, ?, ?)}");
         ) {
+            HashMap<Integer, String> roomsTable = new HashMap<>(); // (index, roomType)
             String hotelID = "000", guestId = "00000", fname = "", lname = "";
             int guestPoints = 0, guestCount = 0;
             ArrayList<String> hotels = new ArrayList<>(); // store h_ids in here
@@ -177,10 +179,10 @@ public class Utilization {
                             hotelID = hotels.get(i-1); // select this hotel
                             tryAgain = false;
                         } else {                    
-                            throw new NumberFormatException("Input error: Please enter a valid index"); // jump to catch
+                            throw new NumberFormatException(); // jump to catch
                         }
                     } catch (NumberFormatException e) {
-                        System.err.println(e.getMessage());
+                        System.err.println("Input error: Please enter a valid index");
                     }
                 }
             }
@@ -243,6 +245,7 @@ public class Utilization {
 
             tryAgain = true;
             while (tryAgain) {
+                roomsTable.clear();
                 System.out.println("\nPlease select an option below:");
                 System.out.println("(1) Check in");
                 System.out.println("(2) Check out");
@@ -251,7 +254,7 @@ public class Utilization {
                 switch (s.nextLine()) {
                     case "1":
                         // check in
-                        /* TODO:
+                        /* 
                          * find reservation under this guest which begins today
                          * call PL/SQL procedure to check guest in (assign room of proper room_type to that guest and mark as occupied)
                          */
@@ -264,17 +267,90 @@ public class Utilization {
                         ResultSet res3 = findReservationByGuest.executeQuery();
                         if (!res3.next()) {
                             // no current reservations under this guest
-                            System.err.println("There are no current reservations under this guest.");
+                            System.out.print("There are no current reservations under this guest.\nWould you like to create a walk-in reservation? If so, type Y and otherwise, type anything else: ");
+                            switch (s.nextLine().toLowerCase()) {
+                                case "y":
+                                    // create walk-in reservation
+                                    /*
+                                     * walk in:
+                                     * collect duration of stay and regular check in parameters
+                                     * 
+                                     * within the selected hotel, find a room that is vacant and clean
+                                     * then, set this room to occupied and unclean, signifying that the guest has checked in
+                                     */
 
-                            /*
-                             * walk in:
-                             * collect duration of stay
-                             * 
-                             * within the selected hotel, find a room that is vacant and clean
-                             * then, set this room to occupied and unclean, signifying that the guest has checked in
-                             */
+                                     int roomIndex = 0;
+
+                                    // get type of room
+                                    findAvailableRooms.setString(1, hotelID);
+                                    ResultSet res5 = findAvailableRooms.executeQuery();
+ 
+                                    if (!res5.next()) {
+                                        System.err.println("Sorry, there are no available rooms at this location.");
+                                        break;
+                                    } else {
+                                        System.out.printf("%-7s%-20s%-10s\n", "Index", "Room Type", "Num. Available Rooms");
+                                        do {
+                                            roomsTable.put(++roomIndex, res5.getString(1)); // add to table
+                                            System.out.printf("%-7s%-20s%-10d\n", roomIndex, res5.getString(1), res5.getInt(2));
+                                        } while (res5.next());
+                                    }
+
+                                    String roomType = "";
+                                    boolean tryAgainRType = true;
+                                    while (tryAgainRType) {
+                                        System.out.println("\nPlease type the index of the type of room you would like.");
+                                        try {
+                                            int i = Integer.valueOf(s.nextLine());
+                                            if (i > 0 && i <= roomIndex) { // ensure that index is in range
+                                                roomType = roomsTable.get(i); // select this room type
+                                                tryAgainRType = false;
+                                            } else {                    
+                                                throw new NumberFormatException();
+                                            }
+                                        } catch (NumberFormatException e) {
+                                            System.err.println("Input error: Please enter a valid index");
+                                        }
+                                    }
+
+                                    int duration = 0;
+                                    boolean tryAgainDuration = true;
+                                    while (tryAgainDuration) {
+                                        System.out.println("How many days would you like to stay for?");
+                                        try {
+                                            duration = Integer.valueOf(s.nextLine());
+                                            if (duration > 0) {
+                                                tryAgainDuration = false;
+                                            } else {
+                                                throw new NumberFormatException();
+                                            }
+                                        } catch (NumberFormatException e) {
+                                            System.err.println("Input Error: Please enter a valid positive integer.");
+                                        }                                        
+                                    }
+
+                                    Timestamp inTime = now;
+                                    Timestamp outTime = new Timestamp(inTime.getTime() + duration*1000*60*60*24);
+
+                                    performWalkIn.registerOutParameter(1, Types.VARCHAR);
+                                    performWalkIn.setString(2, guestId);
+                                    performWalkIn.setTimestamp(3, inTime);
+                                    performWalkIn.setTimestamp(4, outTime);
+                                    performWalkIn.setString(5, roomType);
+                                    performWalkIn.setString(6, hotelID);
+                                    performWalkIn.execute();
+                                    String roomNumber = performWalkIn.getString(1);
+
+                                    System.out.println("\nWalk-in request successful! You will be staying in room " + roomNumber);
+
+                                    break;
+                            
+                                default:
+                                    System.out.println("Returning to main menu...");
+                                    break;
+                            }
+
                         } else {
-                            HashMap<Integer, String> roomsTable = new HashMap<>(); // (index, roomType)
                             String res_id = res3.getString("res_id");
                             Timestamp inTime = res3.getTimestamp("in_time", null);
                             Timestamp outTime = res3.getTimestamp("out_time", null);
@@ -299,6 +375,7 @@ public class Utilization {
 
                                     if (!res5.next()) {
                                         System.err.println("Sorry, there are no available rooms at this location.");
+                                        break;
                                     } else {
                                         System.out.printf("%-7s%-20s%-10s\n", "Index", "Room Type", "Num. Available Rooms");
                                         do {
@@ -316,10 +393,10 @@ public class Utilization {
                                                 roomType = roomsTable.get(i); // select this room type
                                                 tryAgainRType = false;
                                             } else {                    
-                                                throw new NumberFormatException("Input error: Please enter a valid index");
+                                                throw new NumberFormatException();
                                             }
                                         } catch (NumberFormatException e) {
-                                            System.err.println(e.getMessage());
+                                            System.err.println("Input error: Please enter a valid index");
                                         }
                                     }
 
@@ -345,10 +422,8 @@ public class Utilization {
                                     // return to agent menu
                                     System.out.println("Check-in request cancelled successfully.");
                                     break;
-
                             }
                         }
-
                         break;
                         
                     case "2":
@@ -369,6 +444,8 @@ public class Utilization {
                             int duration = (int) (outTime.getTime()-inTime.getTime())/(1000*60*60*24);
                             
                             // calculate cost of stay
+
+                            // TODO: insert the rate used here into uses table
                             getCost.registerOutParameter(1, Types.INTEGER);
                             getCost.setString(2, res_id);
                             getCost.setTimestamp(3, inTime);
@@ -403,11 +480,11 @@ public class Utilization {
                                                             tryAgainPoints = false;
                                                             usdPaid -= ((float) pointsPaid/100); // remaining usd to pay
                                                         } else {
-                                                            throw new NumberFormatException(String.format("Input Error: Please enter a valid number in the range [%d, %d]", 0, Math.max(guestPoints, pointsPaid)));
+                                                            throw new NumberFormatException();
                                                         }
                                                         
                                                     } catch (NumberFormatException e) {
-                                                        System.err.println(e.getMessage());
+                                                        System.err.printf("Input Error: Please enter a valid number in the range [%d, %d]\n", 0, Math.max(guestPoints, pointsPaid));
                                                     }
                                                 }
 
@@ -510,10 +587,10 @@ public class Utilization {
                             myHotel = hotels.get(i-1); // clean rooms in this hotel only
                             tryAgain = false;
                         } else {                    
-                            throw new NumberFormatException("Input error: Please enter a valid index");
+                            throw new NumberFormatException();
                         }
                     } catch (NumberFormatException e) {
-                        System.err.println(e.getMessage());
+                        System.err.println("Input error: Please enter a valid index");
                     }
                 }
             }
