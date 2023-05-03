@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE checkOutGuest (
+CREATE OR REPLACE PROCEDURE handleCheckout (
     rID IN VARCHAR, -- res_id
     inTime IN TIMESTAMP, -- in_time
     outTime IN TIMESTAMP, -- out_time
