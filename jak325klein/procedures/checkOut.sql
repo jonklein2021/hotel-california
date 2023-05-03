@@ -3,7 +3,8 @@ CREATE OR REPLACE PROCEDURE checkOutGuest (
     inTime IN TIMESTAMP, -- in_time
     outTime IN TIMESTAMP, -- out_time
     usdPaid IN FLOAT,
-    pointsPaid IN NUMERIC) IS -- amount that guest paid
+    pointsPaid IN NUMERIC,
+    gID IN VARCHAR) IS
     tID VARCHAR(5);
     roomID VARCHAR(5);
 BEGIN
@@ -25,6 +26,11 @@ BEGIN
     
     -- record in res <- tx set
     INSERT INTO represents (res_id, t_id) VALUES (rID, tID);
+    
+    -- deduct guest's points
+    UPDATE guests
+    SET points = points - pointsPaid
+    WHERE g_id = gID;
     
     -- set room as vacant and unclean
     UPDATE rooms

@@ -136,7 +136,7 @@ public class Utilization {
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
             PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ?");
             CallableStatement getCost = c.prepareCall("{? = call determineCostUsd(?, ?)}");
-            CallableStatement performCheckOut = c.prepareCall("{call checkOutGuest(?, ?, ?, ?, ?)}");
+            CallableStatement performCheckOut = c.prepareCall("{call checkOutGuest(?, ?, ?, ?, ?, ?)}");
         ) {
             String guestId = "00000", fname = "", lname = "";
             int guestPoints = 0;
@@ -219,10 +219,9 @@ public class Utilization {
                         
                     case "2":
                         // check out
-
                         System.out.println("Searching for currently active reservations...\n");
-                        findReservationByGuest.setTimestamp(1, now, null);
-                        findReservationByGuest.setTimestamp(2, now, null);
+                        findReservationByGuest.setTimestamp(1, now);
+                        findReservationByGuest.setTimestamp(2, now);
                         findReservationByGuest.setString(3, guestId);
 
                         ResultSet res3 = findReservationByGuest.executeQuery();
@@ -245,7 +244,7 @@ public class Utilization {
 
                             // send reservation to stdout
                             System.out.printf("%-15s%-15s%-10s%-10s%-10s\n", "Start Date", "End Date", "Duration", "USD", "Points");
-                            System.out.printf("%-15s%-15s%-10s%-10.2f%-10d\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration + " days", usdCost, pointsCost);
+                            System.out.printf("%-15s%-15s%-10s%-10.2f%-10d\n", inTime.toString().split(" ")[0], "$"+outTime.toString().split(" ")[0], duration + " days", usdCost, pointsCost);
 
                             System.out.print("\nType Y to confirm the check-out for reservation above and type anything else to cancel: ");
                             switch (s.nextLine().toLowerCase()) {
@@ -291,6 +290,7 @@ public class Utilization {
                                         performCheckOut.setTimestamp(3, outTime);
                                         performCheckOut.setFloat(4, usdPaid);
                                         performCheckOut.setInt(5, pointsPaid);
+                                        performCheckOut.setString(6, guestId);
                                         performCheckOut.execute();
                                         System.out.println("Checkout successful.");
                                     }
