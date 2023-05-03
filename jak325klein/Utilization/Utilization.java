@@ -135,7 +135,7 @@ public class Utilization {
             PreparedStatement findAvailableRooms = c.prepareStatement("SELECT r_type type, count(*) num_available FROM contains NATURAL JOIN rooms WHERE h_id = ? AND is_vacant = 1 AND is_clean = 1 GROUP BY r_type ORDER BY num_available DESC");
             PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
-            PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ?");
+            PreparedStatement findReservationByGuest = c.prepareStatement("SELECT * FROM reserves NATURAL JOIN reservations WHERE in_time <= ? AND out_time >= ? AND g_id = ? AND r_number = '00000'");
             CallableStatement performCheckIn = c.prepareCall("{? = call handleCheckin(?, ?, ?, ?)}");
             CallableStatement getCost = c.prepareCall("{? = call determinePrice(?, ?)}");
             CallableStatement performCheckOut = c.prepareCall("{call handleCheckout(?, ?, ?, ?, ?, ?)}");
@@ -227,7 +227,8 @@ public class Utilization {
                             System.err.printf("No guests found under the name \"%s %s\" with phone number %s. Please try again", fname, lname, phone);
                         } else {
                             tryAgain = false;
-                            System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
+                            System.out.println("Found!\n");
+                            System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
                             do {
                                 guestId = res2.getString("g_id");
                                 guestPoints = res2.getInt("points");
@@ -255,8 +256,7 @@ public class Utilization {
                          * call PL/SQL procedure to check guest in (assign room of proper room_type to that guest and mark as occupied)
                          */
                         
-                        System.out.println("Searching for currently active reservations...\n");
-                        System.out.println(now.toString() + " " + guestId);
+                        System.out.println("Searching for currently active reservations...");
                         findReservationByGuest.setTimestamp(1, now);
                         findReservationByGuest.setTimestamp(2, now);
                         findReservationByGuest.setString(3, guestId);
@@ -280,6 +280,8 @@ public class Utilization {
                             Timestamp outTime = res3.getTimestamp("out_time", null);
                             int duration = (int) (outTime.getTime()-inTime.getTime())/(1000*60*60*24);
 
+                            System.out.println("Found!\n");
+
                             // send reservation to stdout
                             System.out.printf("%-15s%-15s%-10s\n", "Start Date", "End Date", "Duration");
                             System.out.printf("%-15s%-15s%-10s\n", inTime.toString().split(" ")[0], outTime.toString().split(" ")[0], duration + " days");
@@ -298,10 +300,10 @@ public class Utilization {
                                     if (!res5.next()) {
                                         System.err.println("Sorry, there are no available rooms at this location.");
                                     } else {
+                                        System.out.printf("%-7s%-20s%-10s\n", "Index", "Room Type", "Num. Available Rooms");
                                         do {
                                             roomsTable.put(++roomIndex, res5.getString(1)); // add to table
-                                            System.out.printf("%-7s%-10s%-10s\n", "Room Type", "Num. Available Rooms");
-                                            System.out.printf("%-7s%-10s%-10s\n", roomIndex, res5.getString(1), res5.getInt(2));
+                                            System.out.printf("%-7s%-20s%-10d\n", roomIndex, res5.getString(1), res5.getInt(2));
                                         } while (res5.next());
                                     }
                                     String roomType = "";
@@ -332,9 +334,10 @@ public class Utilization {
                                     performCheckIn.setString(3, res_id);
                                     performCheckIn.setString(4, roomType);
                                     performCheckIn.setString(5, hotelID);
-                                    int roomNumber = performCheckIn.executeUpdate();
+                                    performCheckIn.execute();
+                                    String roomNumber = performCheckIn.getString(1);
                                     
-                                    System.out.println("Check-in request successful! You will be staying in room " + roomNumber);
+                                    System.out.println("\nCheck-in request successful! You will be staying in room " + roomNumber);
                                     
                                     return;
 
