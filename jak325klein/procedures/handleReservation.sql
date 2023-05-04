@@ -21,7 +21,7 @@ BEGIN
         (start_month > end_month AND ((in_month >= start_month AND in_month <= 12) OR (in_month >= 1 AND in_month <= end_month)));
 
     -- create reservation
-    INSERT INTO reservations (res_id, in_time, out_time, usd, points, cancellation_fee, r_number) VALUES (resID, inTime, outTime, 0, 0, 50, '00000');
+    INSERT INTO reservations (res_id, in_time, out_time, usd, points, cancellation_fee, r_number) VALUES (lpad(resID, 5, '0'), inTime, outTime, 0, 0, 50, '00000');
     
     -- insert into relationship sets
     INSERT INTO reserves (g_id, res_id) VALUES (lpad(gID, 5, '0'), lpad(resID, 5, '0'));

@@ -464,13 +464,13 @@ public class Utilization {
 
                                 if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 1970) {
                                     Calendar cal = new GregorianCalendar(year, month-1, day, 16, 0);
-                                    startTime = new Timestamp(cal.getTimeInMillis());
-                                    
-                                    if (now.before(startTime)) {
+                                    startTime = new Timestamp(cal.getTimeInMillis()); // 4pm - 8*60*60*1000
+
+                                    if (now.after(startTime)) {
+                                        System.err.println("Input Error: This date is in the past");
+                                    } else {
                                         // validate that date is not in the past
                                         tryAgain = false;
-                                    } else {
-                                        System.err.println("Input Error: This date is in the past");
                                     }
                                 } else {
                                     System.err.println("Input Error: This date is invalid");
@@ -497,7 +497,7 @@ public class Utilization {
                             }                                        
                         }
 
-                        Timestamp endTime = new Timestamp(startTime.getTime() + duration*24*60*1000);
+                        Timestamp endTime = new Timestamp(startTime.getTime() + duration*1000*60*60*24);
 
                         // call PL/SQL procedure to create this reservation
                         // if startTime == now, call handleWalkin()
