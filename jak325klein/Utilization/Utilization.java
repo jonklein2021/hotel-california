@@ -61,9 +61,7 @@ public class Utilization {
 
                             System.out.println("Customer Online Reservation System");
                             System.out.println("==================================================");
-                            
-                            System.out.println("Please provide your customer ID below:");
-            
+                            reservationSystem(s, c);
                             
                             break;
                     
@@ -71,7 +69,7 @@ public class Utilization {
 
                             // Front-Desk Agent
                             /*
-                             * Agent enters customer name (and phone number if necessary)
+                             * Agent enters customer name (and phoneNumber number if necessary)
                              * Agent collects a range of dates
                              * Agent assigns that customer a room sufficing that range of dates
                              */
@@ -126,6 +124,149 @@ public class Utilization {
                 e.printStackTrace();
                 System.exit(1);
             }
+        }
+    }
+
+    // mIkE -> Mike
+    public static String correctCase(String s) {
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+    }
+
+    public static void reservationSystem(Scanner s, Connection c) {
+        try (
+            PreparedStatement performRegistration = c.prepareCall("{call handleNewGuest(?, ?, ?, ?, ?, ?, ?)}");
+        ) {
+
+            boolean signOut = true;
+            while (signOut) {
+                System.out.println("Please select an option below:");
+                System.out.println("(1) Create an account");
+                System.out.println("(2) Login to an existing account");
+                System.out.println("(3) Return to main menu");
+                switch (s.nextLine()) {
+                    case "1":
+                        // create an account
+                        // collect fname, lname, address, phoneNumber, cc_number
+                        // ask to make frequent guest
+
+                        String fname = "", lname = "", address = "", email = "", phoneNumber = "", ccNumber = "";
+                        int points = -1;
+
+                        boolean tryAgain = true;
+                        while (tryAgain) {
+                            System.out.print("Please enter your first and last name separated by a space (ex: \"Mike Kaufman\"): ");
+                            String names = s.nextLine();
+                            if (names.strip().matches("[A-Za-z]+ [A-Za-z]+")) {
+                                // format matches; convert to correct case
+                                tryAgain = false;
+                                fname = correctCase(names.split(" ")[0]);
+                                lname = correctCase(names.split(" ")[1]);
+                            } else {
+                                System.err.println("Input error: Please enter names with proper formatting.");
+                            }
+                        }
+
+                        System.out.print("Please enter your address: ");
+                        address = s.nextLine();
+
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.print("Please enter your phone number in the format \"(###) ###-####\": ");
+                            String phoneNum = s.nextLine();
+                            if (phoneNum.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
+                                tryAgain = false;
+                                phoneNumber = phoneNum;
+                            } else {
+                                System.err.println("Input Error: Improper format.");
+                            }
+                        }
+
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.print("Please enter a valid email: ");
+                            String emailAdd = s.nextLine();
+                            // reference: https://regexr.com/2rhq7
+                            if (emailAdd.matches("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")) {
+                                tryAgain = false;
+                                email = emailAdd;
+                            } else {
+                                System.err.println("Input Error: Email is invalid.");
+                            }
+                        }
+
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.print("Please enter your credit card number in the format \"#### #### #### ####\": ");
+                            String ccNum = s.nextLine();
+                            if (ccNum.matches("\\d{4} \\d{4} \\d{4} \\d{4}")) {
+                                tryAgain = false;
+                                ccNumber = ccNum;
+                            } else {
+                                System.err.println("Input Error: Please enter your credit card number in the proper format.");
+                            }
+                        }
+
+                        System.out.print("Would you like to join our frequent guest program? Type Y to accept and anything else to reject: ");
+                        if (s.nextLine().toLowerCase().equals("y")) {
+                            points = 0;
+                            System.out.println("Success! You are now a part of our frequent guest program!");
+                        }
+
+                        System.out.printf("\n%-15s%-15s%-40s\n", "First Name", "Last Name", "Address");
+                        System.out.printf("%-15s%-15s%-40s\n", fname, lname, address);
+                        System.out.printf("\n%-15s%-20s%-20s\n", "Phone Number", "CC Number", "Frequent Guest");
+                        System.out.printf("%-15s%-20s%-20s\n", phoneNumber, ccNumber, (points == 0) ? "Yes" : "No");
+                        
+                        System.out.print("Please confirm the information above. Type Y if all is correct and anything else if something is wrong: ");
+                        if (s.nextLine().toLowerCase().equals("y")) {
+                            // create new guest w PL/SQL
+                            performRegistration.setString(1, fname);
+                            performRegistration.setString(2, lname);
+                            performRegistration.setString(3, phoneNumber);
+                            performRegistration.setString(4, address);
+                            performRegistration.setString(5, email);
+                            performRegistration.setString(6, ccNumber);
+                            performRegistration.setInt(7, points);
+                            performRegistration.executeUpdate();
+
+                            System.out.println("Registration successful!");
+
+                        } else {
+                            System.out.println("Registration cancelled successfully.\nReturning to menu...");
+                            break;
+                        }
+                        
+                        break;
+                    case "2":
+                        // login to account
+                        // get gID using fname/lname and phoneNumber if need be
+                        // ask for their starting date and their duration of stay
+                        // ask for preferred type of room
+                        // assign room to guest
+                        // ask to make frequent guest
+                        break;
+
+                    case "3":
+                        return;
+                    default:
+                        System.err.println("Input Error: Please select a valid option.");
+                        break;
+                }
+            }
+
+            /*
+             * reservation system:
+             * login or register
+             * get hotel via city
+             * get dates of reservation
+             * get type of room
+             * assign reservation to customer
+             */
+            
+        } catch (SQLException e) {
+            System.err.println("Error: Something went wrong.\nStack trace:");
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -216,17 +357,17 @@ public class Utilization {
             if (guestCount > 1) { // there exist multiple guests with the same first and last name (only happens for Mike Kaufman)
                 tryAgain = true;
                 while (tryAgain) {   
-                    System.out.printf("Which %s %s would you like to select?\nEnter a phone number in the format \"(###) ###-####\": ", fname, lname);
-                    String phone = s.nextLine();
-                    if (phone.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
-                        System.out.printf("Searching for %s %s with phone number %s...\n", fname, lname, phone);
+                    System.out.printf("Which %s %s would you like to select?\nEnter a phoneNumber number in the format \"(###) ###-####\": ", fname, lname);
+                    String phoneNumber = s.nextLine();
+                    if (phoneNumber.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
+                        System.out.printf("Searching for %s %s with phoneNumber number %s...\n", fname, lname, phoneNumber);
                         findGuestByNameAndPhone.setString(1, fname);
                         findGuestByNameAndPhone.setString(2, lname);
-                        findGuestByNameAndPhone.setString(3, phone);
+                        findGuestByNameAndPhone.setString(3, phoneNumber);
                         ResultSet res2 = findGuestByNameAndPhone.executeQuery();
 
                         if (!res2.next()) {
-                            System.err.printf("No guests found under the name \"%s %s\" with phone number %s. Please try again", fname, lname, phone);
+                            System.err.printf("No guests found under the name \"%s %s\" with phoneNumber number %s. Please try again", fname, lname, phoneNumber);
                         } else {
                             tryAgain = false;
                             System.out.println("Found!\n");
