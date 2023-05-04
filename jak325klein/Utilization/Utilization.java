@@ -3,17 +3,8 @@
  * Hotel California
  */
 
-import java.sql.*; // LocalDate work as SQL timestamp objects
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Scanner;
+import java.sql.*; // LocalDate work as SQL timestamp objects\
+import java.util.*;
 
 public class Utilization {
     public static void main(String[] args) throws InterruptedException {
@@ -308,9 +299,9 @@ public class Utilization {
                         tryAgain = true;
                         while (tryAgain) {
                             System.out.print("\nPlease enter your first name: ");
-                            fname = s.nextLine();
+                            fname = correctCase(s.nextLine());
                             System.out.print("Please enter your last name: ");
-                            lname = s.nextLine();
+                            lname = correctCase(s.nextLine());
             
                             System.out.printf("Searching for %s %s...\n", fname, lname);
                             findGuestByName.setString(1, fname);
@@ -376,7 +367,7 @@ public class Utilization {
                             System.out.println("We have hotels in the following cities:");
                             printHotelCities(c);
                             System.out.print("Please enter your hotel's city: ");
-                            String city = s.nextLine();
+                            String city = correctCase(s.nextLine());
                             findHotels.setString(1, "%, " + city + ", %");
             
                             ResultSet res1 = findHotels.executeQuery();
@@ -455,6 +446,7 @@ public class Utilization {
 
                         tryAgain = true;
                         while (tryAgain) {
+                            System.out.printf("The date today is %s and the time now is %s\n", now.toString().split(" ")[0], now.toString().split(" ")[1]);
                             System.out.println("What date would you like to make a reservation for?\nPlease enter in the form \"MM/DD/YYYY\":");
                             String input = s.nextLine();
                             if (input.matches("\\d{1,2}/\\d{1,2}/\\d{4}")) {
@@ -561,11 +553,13 @@ public class Utilization {
             Timestamp now = new Timestamp(218926800000L); // 12/08/1976 @ 4pm EST
             boolean tryAgain = true; // to loop for inputs
 
+            System.out.printf("The date today is %s and the time now is %s\n", now.toString().split(" ")[0], now.toString().split(" ")[1]);
+
             while (tryAgain) {
                 System.out.println("\nWe have hotels in the following cities:");
                 printHotelCities(c);
                 System.out.print("Please enter your hotel's city: ");
-                String city = s.nextLine();
+                String city = correctCase(s.nextLine());
                 findHotels.setString(1, "%, " + city + ", %");
 
                 ResultSet res1 = findHotels.executeQuery();
@@ -605,9 +599,9 @@ public class Utilization {
             tryAgain = true;
             while (tryAgain) {
                 System.out.print("\nPlease enter guest's first name: ");
-                fname = s.nextLine();
+                fname = correctCase(s.nextLine());
                 System.out.print("Please enter guest's last name: ");
-                lname = s.nextLine();
+                lname = correctCase(s.nextLine());
 
                 System.out.printf("Searching for %s %s...\n", fname, lname);
                 findGuestByName.setString(1, fname);
@@ -861,7 +855,6 @@ public class Utilization {
                             
                             // calculate cost of stay
 
-                            // TODO: insert the rate used here into uses table
                             getCost.registerOutParameter(1, Types.INTEGER);
                             getCost.setString(2, res_id);
                             getCost.setTimestamp(3, inTime);
@@ -974,7 +967,7 @@ public class Utilization {
                 System.out.println("\nWe have hotels in the following cities:");
                 printHotelCities(c);
                 System.out.print("Please enter your hotel's city: ");
-                String city = s.nextLine();
+                String city = correctCase(s.nextLine());
                 findHotels.setString(1, "%, " + city + ", %");
 
                 ResultSet res1 = findHotels.executeQuery();
