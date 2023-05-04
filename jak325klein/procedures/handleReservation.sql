@@ -24,7 +24,7 @@ BEGIN
     INSERT INTO reservations (res_id, in_time, out_time, usd, points, cancellation_fee, r_number) VALUES (resID, inTime, outTime, 0, 0, 50, '00000');
     
     -- insert into relationship sets
-    INSERT INTO reserves (g_id, res_id) VALUES (gID, resID);
-    INSERT INTO res_type (res_id, r_type) VALUES (resID, roomType);
-    INSERT INTO uses (res_id, rate_usd) VALUES (resID, rateUsd);
+    INSERT INTO reserves (g_id, res_id) VALUES (lpad(gID, 5, '0'), lpad(resID, 5, '0'));
+    INSERT INTO res_type (res_id, r_type) VALUES (lpad(resID, 5, '0'), roomType);
+    INSERT INTO uses (res_id, rate_usd) VALUES (lpad(resID, 5, '0'), rateUsd);
 END;

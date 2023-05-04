@@ -14,5 +14,5 @@ BEGIN
     gID := gID + 1;
     
     -- insert new entry
-    INSERT INTO guests (g_id, fname, lname, address, email, phone_number, cc_number, points) VALUES (gID, firstName, lastName, gAddress, gEmail, phoneNumber, ccNumber, fPoints);
+    INSERT INTO guests (g_id, fname, lname, address, email, phone_number, cc_number, points) VALUES (lpad(gID, 5, '0'), firstName, lastName, gAddress, gEmail, phoneNumber, ccNumber, fPoints);
 END;

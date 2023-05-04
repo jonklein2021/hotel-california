@@ -23,10 +23,13 @@ BEGIN
     WHERE res_id = resID;
 
     -- record in tx table
-    INSERT INTO transactions (t_id, t_time, usd, points) VALUES (tID, outTime, usdPaid, pointsPaid);
+    INSERT INTO transactions (t_id, t_time, usd, points) VALUES (lpad(tID, 5, '0'), outTime, usdPaid, pointsPaid);
 
     -- record in res <- tx set
-    INSERT INTO represents (res_id, t_id) VALUES (resID, tID);
+    INSERT INTO represents (res_id, t_id) VALUES (lpad(resID, 5, '0'), lpad(tID, 5, '0'));
+    
+    -- record in tx -> guests set
+    INSERT INTO spends (g_id, t_id) VALUES (lpad(gID, 5, '0'), lpad(tID, 5, '0'));
     
     -- if guest a frequent member, award them points
     SELECT points INTO guestPoints FROM guests

@@ -4,6 +4,8 @@
  */
 
 import java.sql.*; // LocalDate work as SQL timestamp objects
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -149,7 +151,7 @@ public class Utilization {
             } while (res.next());
 
             for (String city : cities) {
-                System.out.println(city);
+                System.out.println("-" + city);
             }
             
         } catch (SQLException e) {
@@ -425,7 +427,7 @@ public class Utilization {
                             System.err.println("Sorry, there are no available rooms at this location.");
                             break;
                         } else {
-                            System.out.printf("%-7s%-20s%-10s\n", "Index", "Room Type", "Num. Available Rooms");
+                            System.out.printf("\n%-7s%-20s%-10s\n", "Index", "Room Type", "Num. Available Rooms");
                             do {
                                 roomsTable.put(++roomIndex, res5.getString(1)); // add to table
                                 System.out.printf("%-7s%-20s%-10d\n", roomIndex, res5.getString(1), res5.getInt(2));
@@ -460,16 +462,18 @@ public class Utilization {
                                 int day = Integer.parseInt(input.split("/")[1]);
                                 int year = Integer.parseInt(input.split("/")[2]);
 
-                                Calendar cal = new GregorianCalendar(year, month-1, day, 16, 0);
-                                startTime = new Timestamp(cal.getTimeInMillis());
-
-                                System.out.println(startTime.toString());
-                                
-                                if (now.before(startTime)) {
-                                    // validate that date is in the future
-                                    tryAgain = false;
+                                if (month >= 1 && month <= 12 && day >= 1 && day <= 31 && year >= 1970) {
+                                    Calendar cal = new GregorianCalendar(year, month-1, day, 16, 0);
+                                    startTime = new Timestamp(cal.getTimeInMillis());
+                                    
+                                    if (now.before(startTime)) {
+                                        // validate that date is not in the past
+                                        tryAgain = false;
+                                    } else {
+                                        System.err.println("Input Error: This date is in the past");
+                                    }
                                 } else {
-                                    System.err.println("Input Error: This date is in the past");
+                                    System.err.println("Input Error: This date is invalid");
                                 }
                                 
                             } else {
@@ -508,7 +512,7 @@ public class Utilization {
                             performWalkIn.setString(6, hotelID);
                             performWalkIn.execute();
                             String roomNumber = performWalkIn.getString(1);
-                            
+
                             System.out.println("\nWalk-in request successful! You will be staying in room " + roomNumber);
                         } else {
                             performReservation.setString(1, guestId);
@@ -558,7 +562,7 @@ public class Utilization {
             boolean tryAgain = true; // to loop for inputs
 
             while (tryAgain) {
-                System.out.println("We have hotels in the following cities:");
+                System.out.println("\nWe have hotels in the following cities:");
                 printHotelCities(c);
                 System.out.print("Please enter your hotel's city: ");
                 String city = s.nextLine();
@@ -967,7 +971,7 @@ public class Utilization {
             int index = 0;
             boolean tryAgain = true; // to loop for inputs
             while (tryAgain) {
-                System.out.println("We have hotels in the following cities:");
+                System.out.println("\nWe have hotels in the following cities:");
                 printHotelCities(c);
                 System.out.print("Please enter your hotel's city: ");
                 String city = s.nextLine();
