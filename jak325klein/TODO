@@ -5,10 +5,6 @@
     - Explain how room numbers work?
     - There is one guest replica: Mike Kaufman (045, 055)
 
-- PL/SQL Stored Procedures
-    - Create new customer
-
 - Java program
     - Allow loopback to main menu during interfaces
-    - Insert into res_type, uses when necessary
-    - Give points to frequent guests on checkout
+    - Display the time in customer & front desk

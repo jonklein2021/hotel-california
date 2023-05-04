@@ -4,9 +4,13 @@
  */
 
 import java.sql.*; // LocalDate work as SQL timestamp objects
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Scanner;
 
 public class Utilization {
@@ -69,7 +73,7 @@ public class Utilization {
 
                             // Front-Desk Agent
                             /*
-                             * Agent enters customer name (and phoneNumber number if necessary)
+                             * Agent enters customer name (and phone number if necessary)
                              * Agent collects a range of dates
                              * Agent assigns that customer a room sufficing that range of dates
                              */
@@ -122,8 +126,37 @@ public class Utilization {
             } catch (Exception e) {
                 System.err.println("Error: Something went wrong.\nStack trace:");
                 e.printStackTrace();
+                s.close();
                 System.exit(1);
             }
+        }
+    }
+
+    public static void printHotelCities(Connection c) {
+        try (
+            Statement listHotels = c.createStatement();
+        ) {
+            ResultSet res = listHotels.executeQuery("SELECT address FROM hotels");
+            HashSet<String> cities = new HashSet<>(); // city, quantity
+            if (!res.next()) {
+                System.out.println("Oops! There are no hotels :(");
+                return;
+            }
+            
+            do {
+                String city = res.getString(1).split(",")[1];
+                cities.add(city);
+            } while (res.next());
+
+            for (String city : cities) {
+                System.out.println(city);
+            }
+            
+        } catch (SQLException e) {
+            // all other SQL errors
+            System.err.println("SQL Error: Something went wrong.\nStack trace:");
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -133,8 +166,24 @@ public class Utilization {
     }
 
     public static void reservationSystem(Scanner s, Connection c) {
+        
+        /*
+            * reservation system:
+            * login or register
+            * get hotel via city
+            * get dates of reservation
+            * get type of room
+            * assign reservation to customer
+            */
+
         try (
             PreparedStatement performRegistration = c.prepareCall("{call handleNewGuest(?, ?, ?, ?, ?, ?, ?)}");
+            PreparedStatement findHotels = c.prepareStatement("SELECT * FROM hotels WHERE address LIKE ?");
+            PreparedStatement findAvailableRooms = c.prepareStatement("SELECT r_type type, count(*) num_available FROM contains NATURAL JOIN rooms WHERE h_id = ? AND is_vacant = 1 AND is_clean = 1 GROUP BY r_type ORDER BY num_available DESC");
+            PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
+            PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
+            CallableStatement performWalkIn = c.prepareCall("{? = call handleWalkin(?, ?, ?, ?, ?)}");
+            CallableStatement performReservation = c.prepareCall("{call handleReservation(?, ?, ?, ?, ?)}");
         ) {
 
             boolean signOut = true;
@@ -166,7 +215,7 @@ public class Utilization {
                             }
                         }
 
-                        System.out.print("Please enter your address: ");
+                        System.out.print("Please enter your city: ");
                         address = s.nextLine();
 
                         tryAgain = true;
@@ -232,18 +281,245 @@ public class Utilization {
                             System.out.println("Registration successful!");
 
                         } else {
-                            System.out.println("Registration cancelled successfully.\nReturning to menu...");
+                            System.out.println("Registration cancelled successfully.\nReturning to menu...\n");
                             break;
                         }
                         
                         break;
                     case "2":
                         // login to account
-                        // get gID using fname/lname and phoneNumber if need be
+                        // get gID using fname/lname and phone number if need be
                         // ask for their starting date and their duration of stay
                         // ask for preferred type of room
                         // assign room to guest
                         // ask to make frequent guest
+
+                        HashMap<Integer, String> roomsTable = new HashMap<>(); // (index, roomType)
+                        String hotelID = "000", guestId = "00000";
+                        fname = ""; lname = "";
+                        int guestPoints = 0, guestCount = 0;
+                        Timestamp now = new Timestamp(218926800000L); // 12/08/1976 @ 4pm EST
+                        ArrayList<String> hotels = new ArrayList<>(); // store h_ids in here
+                        int index = 0;
+
+                        // log guest in
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.print("\nPlease enter your first name: ");
+                            fname = s.nextLine();
+                            System.out.print("Please enter your last name: ");
+                            lname = s.nextLine();
+            
+                            System.out.printf("Searching for %s %s...\n", fname, lname);
+                            findGuestByName.setString(1, fname);
+                            findGuestByName.setString(2, lname);
+                            ResultSet res1 = findGuestByName.executeQuery();
+            
+                            if (!res1.next()) {
+                                System.err.printf("No guests found under the name \"%s %s\".\nType Q to return to reservation menu and type anything else to try again.\n", fname, lname);
+                                if (s.nextLine().toLowerCase().equals("q")) {
+                                    // jump back a menu
+                                    break;
+                                }
+                            } else {
+                                tryAgain = false;
+                                System.out.println("Found!\n");
+                                System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
+                                do {
+                                    guestId = res1.getString("g_id");
+                                    guestPoints = res1.getInt("points");
+                                    System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", guestId, res1.getString("fname"), res1.getString("lname"), res1.getString("phone_number"), guestPoints);
+                                    guestCount++;
+                                } while (res1.next());
+                            }
+                        }
+            
+                        if (guestCount > 1) { // there exist multiple guests with the same first and last name (only happens for Mike Kaufman)
+                            tryAgain = true;
+                            while (tryAgain) {   
+                                System.out.printf("\nWhich %s %s would you like to select?\nEnter a phone number in the format \"(###) ###-####\": ", fname, lname);
+                                phoneNumber = s.nextLine();
+                                if (phoneNumber.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
+                                    System.out.printf("Searching for %s %s with phone number %s...\n", fname, lname, phoneNumber);
+                                    findGuestByNameAndPhone.setString(1, fname);
+                                    findGuestByNameAndPhone.setString(2, lname);
+                                    findGuestByNameAndPhone.setString(3, phoneNumber);
+                                    ResultSet res2 = findGuestByNameAndPhone.executeQuery();
+            
+                                    if (!res2.next()) {
+                                        System.err.printf("No guests found under the name \"%s %s\" with phone number %s.\nType Q to return to reservation menu and type anything else to try again.\n", fname, lname, phoneNumber);
+                                        if (s.nextLine().toLowerCase().equals("q")) {
+                                            // jump back a menu
+                                            break;
+                                        }
+                                    } else {
+                                        tryAgain = false;
+                                        System.out.println("Found!\n");
+                                        System.out.printf("%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
+                                        do {
+                                            guestId = res2.getString("g_id");
+                                            guestPoints = res2.getInt("points");
+                                            System.out.printf("%-10s%-15s%-15s%-20s%-10s\n\n", guestId, res2.getString("fname"), res2.getString("lname"), res2.getString("phone_number"), guestPoints);
+                                        } while (res2.next());
+                                    }
+                                } else {
+                                    System.out.println("Invalid format. Please try again.\n");
+                                }
+                            }
+                        }
+
+                        // select a hotel
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.println("We have hotels in the following cities:");
+                            printHotelCities(c);
+                            System.out.print("Please enter your hotel's city: ");
+                            String city = s.nextLine();
+                            findHotels.setString(1, "%, " + city + ", %");
+            
+                            ResultSet res1 = findHotels.executeQuery();
+                            if (!res1.next() || city.equals("%")) {
+                                System.err.printf("No hotels in city \"%s\" found.\nType Q to return to reservation menu and type anything else to try again.\n", city);
+                                if (s.nextLine().toLowerCase().equals("q")) {
+                                    // jump back a menu
+                                    break;
+                                }
+                            } else {
+                                tryAgain = false;
+                                System.out.println("Found!");
+                                System.out.printf("\n%-7s%-10s%-10s\n", "Index", "Hotel ID", "Hotel Address");
+                                do {
+                                    hotels.add(res1.getString("h_id"));
+                                    hotelID = res1.getString("h_id");
+                                    System.out.printf("%-7s%-10s%-10s\n", ++index, hotels.get(index-1), res1.getString("address"));
+                                } while (res1.next());
+                            }
+                        }
+            
+                        // select the correct hotel using index if there are multiple with the same city name (happens for Portland)
+                        if (index > 1) {
+                            tryAgain = true;
+                            while (tryAgain) {
+                                System.out.print("\nPlease enter the index of the hotel you would like to select: ");
+                                try {
+                                    int i = Integer.valueOf(s.nextLine());
+                                    if (i > 0 && i <= index) { // ensure that index is in range
+                                        hotelID = hotels.get(i-1); // select this hotel
+                                        tryAgain = false;
+                                    } else {                    
+                                        throw new NumberFormatException(); // jump to catch
+                                    }
+                                } catch (NumberFormatException e) {
+                                    System.err.println("Input error: Please enter a valid index");
+                                }
+                            }
+                        }
+
+                        int roomIndex = 0;
+
+                        // get type of room
+                        findAvailableRooms.setString(1, hotelID);
+                        ResultSet res5 = findAvailableRooms.executeQuery();
+
+                        if (!res5.next()) {
+                            System.err.println("Sorry, there are no available rooms at this location.");
+                            break;
+                        } else {
+                            System.out.printf("%-7s%-20s%-10s\n", "Index", "Room Type", "Num. Available Rooms");
+                            do {
+                                roomsTable.put(++roomIndex, res5.getString(1)); // add to table
+                                System.out.printf("%-7s%-20s%-10d\n", roomIndex, res5.getString(1), res5.getInt(2));
+                            } while (res5.next());
+                        }
+
+                        String roomType = "";
+                        boolean tryAgainRType = true;
+                        while (tryAgainRType) {
+                            System.out.println("\nPlease type the index of the type of room you would like.");
+                            try {
+                                int i = Integer.valueOf(s.nextLine());
+                                if (i > 0 && i <= roomIndex) { // ensure that index is in range
+                                    roomType = roomsTable.get(i); // select this room type
+                                    tryAgainRType = false;
+                                } else {                    
+                                    throw new NumberFormatException();
+                                }
+                            } catch (NumberFormatException e) {
+                                System.err.println("Input error: Please enter a valid index");
+                            }
+                        }
+
+                        Timestamp startTime = null;
+
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.println("What date would you like to make a reservation for?\nPlease enter in the form \"MM/DD/YYYY\":");
+                            String input = s.nextLine();
+                            if (input.matches("\\d{1,2}/\\d{1,2}/\\d{4}")) {
+                                int month = Integer.parseInt(input.split("/")[0]);
+                                int day = Integer.parseInt(input.split("/")[1]);
+                                int year = Integer.parseInt(input.split("/")[2]);
+
+                                Calendar cal = new GregorianCalendar(year, month-1, day, 16, 0);
+                                startTime = new Timestamp(cal.getTimeInMillis());
+
+                                System.out.println(startTime.toString());
+                                
+                                if (now.before(startTime)) {
+                                    // validate that date is in the future
+                                    tryAgain = false;
+                                } else {
+                                    System.err.println("Input Error: This date is in the past");
+                                }
+                                
+                            } else {
+                                System.err.println("Input Error: Invalid format");
+                            }
+                        }
+
+                        int duration = 0;
+                        tryAgain = true;
+                        while (tryAgain) {
+                            System.out.println("How many days would you like to stay for?");
+                            try {
+                                duration = Integer.valueOf(s.nextLine());
+                                if (duration > 0 && duration <= 14) {
+                                    tryAgain = false;
+                                } else {
+                                    throw new NumberFormatException();
+                                }
+                            } catch (NumberFormatException e) {
+                                System.err.println("Input Error: Please enter a valid positive integer in the range [1, 14]");
+                            }                                        
+                        }
+
+                        Timestamp endTime = new Timestamp(startTime.getTime() + duration*24*60*1000);
+
+                        // call PL/SQL procedure to create this reservation
+                        // if startTime == now, call handleWalkin()
+                        // else, call handleReservation()
+
+                        if (now.equals(startTime)) {
+                            performWalkIn.registerOutParameter(1, Types.VARCHAR);
+                            performWalkIn.setString(2, guestId);
+                            performWalkIn.setTimestamp(3, startTime);
+                            performWalkIn.setTimestamp(4, endTime);
+                            performWalkIn.setString(5, roomType);
+                            performWalkIn.setString(6, hotelID);
+                            performWalkIn.execute();
+                            String roomNumber = performWalkIn.getString(1);
+                            
+                            System.out.println("\nWalk-in request successful! You will be staying in room " + roomNumber);
+                        } else {
+                            performReservation.setString(1, guestId);
+                            performReservation.setTimestamp(2, startTime);
+                            performReservation.setTimestamp(3, endTime);
+                            performReservation.setString(4, roomType);
+                            performReservation.setString(5, hotelID);
+                            performReservation.execute();
+                            System.out.println("Reservation request completed successfully!");
+                        }
+
                         break;
 
                     case "3":
@@ -253,15 +529,6 @@ public class Utilization {
                         break;
                 }
             }
-
-            /*
-             * reservation system:
-             * login or register
-             * get hotel via city
-             * get dates of reservation
-             * get type of room
-             * assign reservation to customer
-             */
             
         } catch (SQLException e) {
             System.err.println("Error: Something went wrong.\nStack trace:");
@@ -272,7 +539,7 @@ public class Utilization {
 
     public static void deskAgent(Scanner s, Connection c) {
         try (
-            PreparedStatement findHotels = c.prepareStatement("SELECT * FROM hotels WHERE address LIKE ?");
+            PreparedStatement findHotels = c.prepareStatement("SELECT * FROM hotels WHERE city LIKE ?");
             PreparedStatement findAvailableRooms = c.prepareStatement("SELECT r_type type, count(*) num_available FROM contains NATURAL JOIN rooms WHERE h_id = ? AND is_vacant = 1 AND is_clean = 1 GROUP BY r_type ORDER BY num_available DESC");
             PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
@@ -291,6 +558,8 @@ public class Utilization {
             boolean tryAgain = true; // to loop for inputs
 
             while (tryAgain) {
+                System.out.println("We have hotels in the following cities:");
+                printHotelCities(c);
                 System.out.print("Please enter your hotel's city: ");
                 String city = s.nextLine();
                 findHotels.setString(1, "%, " + city + ", %");
@@ -300,11 +569,12 @@ public class Utilization {
                     System.err.printf("No hotels in city \"%s\" found. Please try again.\n", city);
                 } else {
                     tryAgain = false;
+                    System.out.println("Found!\n");
                     System.out.printf("\n%-7s%-10s%-10s\n", "Index", "Hotel ID", "Hotel Address");
                     do {
                         hotels.add(res1.getString("h_id"));
                         hotelID = res1.getString("h_id");
-                        System.out.printf("%-7s%-10s%-10s\n", ++index, hotels.get(index-1), res1.getString("address"));
+                        System.out.printf("%-7s%-10s%-10s\n", ++index, hotels.get(index-1), res1.getString("city"));
                     } while (res1.next());
                 }
             }
@@ -344,6 +614,7 @@ public class Utilization {
                     System.err.printf("No guests found under the name \"%s %s\". Please try again\n", fname, lname);
                 } else {
                     tryAgain = false;
+                    System.out.println("Found!\n");
                     System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
                     do {
                         guestId = res1.getString("g_id");
@@ -354,20 +625,20 @@ public class Utilization {
                 }
             }
 
-            if (guestCount > 1) { // there exist multiple guests with the same first and last name (only happens for Mike Kaufman)
+            if (guestCount > 1) { // there exist multiple guests with the same first and last name (so far only happens for Mike Kaufman)
                 tryAgain = true;
                 while (tryAgain) {   
-                    System.out.printf("Which %s %s would you like to select?\nEnter a phoneNumber number in the format \"(###) ###-####\": ", fname, lname);
+                    System.out.printf("Which %s %s would you like to select?\nEnter a phone number in the format \"(###) ###-####\": ", fname, lname);
                     String phoneNumber = s.nextLine();
                     if (phoneNumber.matches("\\(\\d{3}\\) \\d{3}-\\d{4}")) {
-                        System.out.printf("Searching for %s %s with phoneNumber number %s...\n", fname, lname, phoneNumber);
+                        System.out.printf("Searching for %s %s with phone number %s...\n", fname, lname, phoneNumber);
                         findGuestByNameAndPhone.setString(1, fname);
                         findGuestByNameAndPhone.setString(2, lname);
                         findGuestByNameAndPhone.setString(3, phoneNumber);
                         ResultSet res2 = findGuestByNameAndPhone.executeQuery();
 
                         if (!res2.next()) {
-                            System.err.printf("No guests found under the name \"%s %s\" with phoneNumber number %s. Please try again", fname, lname, phoneNumber);
+                            System.err.printf("No guests found under the name \"%s %s\" with phone number %s. Please try again", fname, lname, phoneNumber);
                         } else {
                             tryAgain = false;
                             System.out.println("Found!\n");
@@ -420,7 +691,7 @@ public class Utilization {
                                      * then, set this room to occupied and unclean, signifying that the guest has checked in
                                      */
 
-                                     int roomIndex = 0;
+                                    int roomIndex = 0;
 
                                     // get type of room
                                     findAvailableRooms.setString(1, hotelID);
@@ -460,13 +731,13 @@ public class Utilization {
                                         System.out.println("How many days would you like to stay for?");
                                         try {
                                             duration = Integer.valueOf(s.nextLine());
-                                            if (duration > 0) {
+                                            if (duration > 0 && duration <= 14) {
                                                 tryAgainDuration = false;
                                             } else {
                                                 throw new NumberFormatException();
                                             }
                                         } catch (NumberFormatException e) {
-                                            System.err.println("Input Error: Please enter a valid positive integer.");
+                                            System.err.println("Input Error: Please enter a valid positive integer in the range [1, 14]");
                                         }                                        
                                     }
 
@@ -696,6 +967,8 @@ public class Utilization {
             int index = 0;
             boolean tryAgain = true; // to loop for inputs
             while (tryAgain) {
+                System.out.println("We have hotels in the following cities:");
+                printHotelCities(c);
                 System.out.print("Please enter your hotel's city: ");
                 String city = s.nextLine();
                 findHotels.setString(1, "%, " + city + ", %");

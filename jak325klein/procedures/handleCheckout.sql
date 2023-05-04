@@ -1,5 +1,5 @@
 CREATE OR REPLACE PROCEDURE handleCheckout (
-    rID IN VARCHAR, -- res_id
+    resID IN VARCHAR, -- res_id
     inTime IN TIMESTAMP, -- in_time
     outTime IN TIMESTAMP, -- out_time
     usdPaid IN FLOAT,
@@ -15,18 +15,18 @@ BEGIN
 
      -- get room number
     SELECT r_number INTO roomID
-    FROM reservations WHERE res_id = rID;
+    FROM reservations WHERE res_id = resID;
 
     -- record guest paying his/her stay
     UPDATE reservations
     SET usd = usdPaid, points = pointsPaid
-    WHERE res_id = rID;
+    WHERE res_id = resID;
 
     -- record in tx table
     INSERT INTO transactions (t_id, t_time, usd, points) VALUES (tID, outTime, usdPaid, pointsPaid);
 
     -- record in res <- tx set
-    INSERT INTO represents (res_id, t_id) VALUES (rID, tID);
+    INSERT INTO represents (res_id, t_id) VALUES (resID, tID);
     
     -- if guest a frequent member, award them points
     SELECT points INTO guestPoints FROM guests
