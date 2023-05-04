@@ -648,7 +648,6 @@ public class Utilization {
 
                                         return;
                                     }
-                                    
                                     break;
                             
                                 default:
@@ -669,8 +668,6 @@ public class Utilization {
                         break;
                 }
             }
-
-
             
         } catch (SQLException e) {
             System.err.println("SQL Error: Something went wrong.\nStack trace:");

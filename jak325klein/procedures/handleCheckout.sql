@@ -7,34 +7,45 @@ CREATE OR REPLACE PROCEDURE handleCheckout (
     gID IN VARCHAR) IS
     tID VARCHAR(5);
     roomID VARCHAR(5);
+    guestPoints INTEGER;
 BEGIN
     -- get new t_id
     SELECT MAX(t_id) INTO tID FROM transactions;
     tID := tID + 1;
-    
+
      -- get room number
     SELECT r_number INTO roomID
     FROM reservations WHERE res_id = rID;
-    
+
     -- record guest paying his/her stay
     UPDATE reservations
     SET usd = usdPaid, points = pointsPaid
     WHERE res_id = rID;
-    
+
     -- record in tx table
     INSERT INTO transactions (t_id, t_time, usd, points) VALUES (tID, outTime, usdPaid, pointsPaid);
-    
+
     -- record in res <- tx set
     INSERT INTO represents (res_id, t_id) VALUES (rID, tID);
     
+    -- if guest a frequent member, award them points
+    SELECT points INTO guestPoints FROM guests
+    WHERE g_id = gID;
+    
+    IF guestPoints >= 0 THEN
+        UPDATE guests
+        SET points = points + 500*EXTRACT(DAY FROM (outTime - inTime)) -- 500 points per night stayed
+        WHERE g_id = gID;
+    END IF;
+
     -- deduct guest's points
     UPDATE guests
     SET points = points - pointsPaid
     WHERE g_id = gID;
-    
+
     -- set room as vacant and unclean
     UPDATE rooms
     SET is_vacant = 1, is_clean = 0
     WHERE r_number = roomID;
-    
+
 END;
