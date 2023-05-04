@@ -155,6 +155,7 @@ public class Utilization {
 
     // mIkE -> Mike
     public static String correctCase(String s) {
+        if (s.isEmpty() || !s.matches("[A-Za-z]+")) return s;
         return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
     }
 
@@ -535,7 +536,7 @@ public class Utilization {
 
     public static void deskAgent(Scanner s, Connection c) {
         try (
-            PreparedStatement findHotels = c.prepareStatement("SELECT * FROM hotels WHERE city LIKE ?");
+            PreparedStatement findHotels = c.prepareStatement("SELECT * FROM hotels WHERE address LIKE ?");
             PreparedStatement findAvailableRooms = c.prepareStatement("SELECT r_type type, count(*) num_available FROM contains NATURAL JOIN rooms WHERE h_id = ? AND is_vacant = 1 AND is_clean = 1 GROUP BY r_type ORDER BY num_available DESC");
             PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
