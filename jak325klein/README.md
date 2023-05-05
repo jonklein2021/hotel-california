@@ -1,4 +1,4 @@
-# **Hotel California**
+# **Jon Klein: Hotel California**
 ### *Fictional hotel interface made with JDBC and Oracle SQL databases for CSE 341*
 
 <br>
@@ -68,7 +68,7 @@ For walk-ins (No reservation s.t. reservation start <= the time now <= reservati
 - If guest is a frequent guest, ask if they would like to use their points to pay for their reservation (100 points = $1)
 - If guest is a frequent guest, award them 500 points for every night of the reservation
 
-### TESTING
+#### TESTING
 Some customers to test walk-in:
 - Shirley Angos
 - Mike Kaufman (588) 323-2415
