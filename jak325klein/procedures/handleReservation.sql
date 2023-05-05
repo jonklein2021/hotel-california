@@ -1,9 +1,9 @@
-CREATE OR REPLACE PROCEDURE handleReservation (
+CREATE OR REPLACE FUNCTION handleReservation (
     gID IN VARCHAR,
     inTime IN TIMESTAMP,
     outTime IN TIMESTAMP,
     roomType IN VARCHAR,
-    hID IN VARCHAR) AS
+    hID IN VARCHAR) RETURN VARCHAR AS
     roomNumber VARCHAR(5);
     resID VARCHAR(5);
     rateUsd NUMERIC(3, 2);
@@ -27,4 +27,6 @@ BEGIN
     INSERT INTO reserves (g_id, res_id) VALUES (lpad(gID, 5, '0'), lpad(resID, 5, '0'));
     INSERT INTO res_type (res_id, r_type) VALUES (lpad(resID, 5, '0'), roomType);
     INSERT INTO uses (res_id, rate_usd) VALUES (lpad(resID, 5, '0'), rateUsd);
+    
+    RETURN lpad(resID, 5, '0');
 END;

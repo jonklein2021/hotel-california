@@ -1,0 +1,2 @@
+Main-class: jak325
+Class-Path: ojdbc8.jar

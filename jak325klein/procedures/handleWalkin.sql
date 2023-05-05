@@ -8,7 +8,7 @@ CREATE OR REPLACE FUNCTION handleWalkin (
     resID VARCHAR(5);
 BEGIN
     -- create reservation
-    handleReservation(gID, inTime, outTime, roomType, hID);
+    resID := handleReservation(gID, inTime, outTime, roomType, hID);
 
     -- check guest in
     roomNumber := handleCheckin(gID, resID, roomType, hID);
