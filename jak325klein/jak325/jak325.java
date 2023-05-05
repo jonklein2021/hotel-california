@@ -990,7 +990,7 @@ public class jak325 {
                 }
             }
 
-            System.out.println("\nPlease enter the room numbers that you have cleaned separated by a space (ex: \"40129 40130 40131\")\nNote: Invalid rooms will not be altered");
+            System.out.println("\nPlease enter the room numbers that you have cleaned separated by a space (ex: \"04129 04130 04131\")\nNote: Invalid rooms will not be altered");
             String rooms = s.nextLine();
 
             roomsToClean = new ArrayList<>(Arrays.asList(rooms.split(" ")));

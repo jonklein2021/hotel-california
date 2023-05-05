@@ -25,7 +25,7 @@ Three interfaces are featured in this project:
 
 More detail about each of these interfaces can be found below.
 
-### Customer Online Reservation Access
+## Customer Online Reservation Access
 
 This interface enables registered guests to make a reservation, or to make an account if they don't have one
 
@@ -40,13 +40,14 @@ Account creation collects the following information:
 #### Making Reservations
 Any guest that exists in the guests table may make a reservation
 - This reservation may start today, or in the future, but not in the past
-- If the reservation begins today, a "walk-in" request will be fille and the guest will be checked in afterwards
-- 
+- If the reservation begins today, a "walk-in" request will be filed and the guest will be checked in afterwards
+- The hotel, preferred room type, and duration of stay are recorded
+- A confirmation of the reservation is presented
 
-#### Notes:
+#### Notes
 - Guests pay for their reservation at check-out time
 
-### Front-Desk Agent
+## Front-Desk Agent
 
 This interface performs check-in and check-out requests for guests with active reservations
 
@@ -67,7 +68,7 @@ For walk-ins (No reservation s.t. reservation start <= the time now <= reservati
 - If guest is a frequent guest, ask if they would like to use their points to pay for their reservation (100 points = $1)
 - If guest is a frequent guest, award them 500 points for every night of the reservation
 
-### TESTING:
+### TESTING
 Some customers to test walk-in:
 - Shirley Angos
 - Mike Kaufman (588) 323-2415
@@ -78,15 +79,37 @@ Customers to test check-out:
 - Adrian Ross
 - Mike Kaufman (499) 419-1417
 
-#### Notes:
+#### Notes
 - Guests pay for their reservation at check-out time
+- Rooms are marked as unclean and vacant in the check-out procedure
 - Reservations that have not been checked in yet have a room number of '00000'
 
-### Housekeeping
+## Housekeeping
 
-TODO
+The housekeeping interface lets cleaning staff log which rooms they've cleaned so that the database remains consistent with the state of the hotel
+- A hotel is selected by city
+- Rooms are entered on a single line separated by spaces
+- "Bad rooms", that is, rooms that cannot be cleaned are filtered out
+- Rooms that remain are "cleaned" and are set to clean in the database
 
-### Addresses
+#### TESTING
+Note: Hotel with ID 0XX has rooms XX### where ### is in between 100 and 199 inclusive
+For example , if h_id = 012, rooms in that hotel are [12100, 12101, ..., 12198, 12199]
+
+The following tests are for the hotel in `Honolulu`:
+Valid rooms to clean:
+- 04129 04130 04131
+Room numbers that don't exist in this hotel:
+- 04200 04999 12100 99999 fish -1/12
+Room numbers that exist in this hotel but are occupied:
+- 04136, 04137, 04138
+Room numbers that exist in this hotel but are already clean:
+- 04106, 04107, 04108
+
+#### Notes
+- Rooms are marked as unclean and vacant in the check-out procedure as opposed to in a trigger
+
+## Address Formatting
 
 Addresses are stored in the format `Street address, City, State Zip`
 
