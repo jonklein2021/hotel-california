@@ -172,7 +172,7 @@ public class jak325 {
             PreparedStatement findGuestByName = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ?");
             PreparedStatement findGuestByNameAndPhone = c.prepareStatement("SELECT * FROM guests WHERE fname = ? AND lname = ? AND phone_number = ?");
             CallableStatement performWalkIn = c.prepareCall("{? = call handleWalkin(?, ?, ?, ?, ?)}");
-            CallableStatement performReservation = c.prepareCall("{call handleReservation(?, ?, ?, ?, ?)}");
+            CallableStatement performReservation = c.prepareCall("{? = call handleReservation(?, ?, ?, ?, ?)}");
         ) {
 
             boolean signOut = true;
@@ -503,11 +503,12 @@ public class jak325 {
 
                             System.out.println("\nWalk-in request successful! You will be staying in room " + roomNumber);
                         } else {
-                            performReservation.setString(1, guestId);
-                            performReservation.setTimestamp(2, startTime);
-                            performReservation.setTimestamp(3, endTime);
-                            performReservation.setString(4, roomType);
-                            performReservation.setString(5, hotelID);
+                            performRegistration.registerOutParameter(1, Types.VARCHAR);
+                            performReservation.setString(2, guestId);
+                            performReservation.setTimestamp(3, startTime);
+                            performReservation.setTimestamp(4, endTime);
+                            performReservation.setString(5, roomType);
+                            performReservation.setString(6, hotelID);
                             performReservation.execute();
                             System.out.println("Reservation request completed successfully!");
                         }

@@ -11,7 +11,7 @@ BEGIN
     resID := handleReservation(gID, inTime, outTime, roomType, hID);
 
     -- check guest in
-    roomNumber := handleCheckin(gID, resID, roomType, hID);
+    roomNumber := handleCheckin(gID, resID, hID);
     
     -- return the room given
     RETURN roomNumber;
