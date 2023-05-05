@@ -503,13 +503,15 @@ public class jak325 {
 
                             System.out.println("\nWalk-in request successful! You will be staying in room " + roomNumber);
                         } else {
-                            performRegistration.registerOutParameter(1, Types.VARCHAR);
+                            performReservation.registerOutParameter(1, Types.VARCHAR);
                             performReservation.setString(2, guestId);
                             performReservation.setTimestamp(3, startTime);
                             performReservation.setTimestamp(4, endTime);
                             performReservation.setString(5, roomType);
                             performReservation.setString(6, hotelID);
                             performReservation.execute();
+                            String resId = performReservation.getString(1);
+
                             System.out.println("Reservation request completed successfully!");
                         }
 
