@@ -4,13 +4,25 @@
 <br>
 
 ## Build Instructions
+Note: The following commands should be run in the `jak325klein` directory
 
+### To Compile
 ```
 make
-java -jar Utilization.jar
+```
+
+### To Run
+```
+java -jar jak325.jar
 ```
 
 #### **IMPORTANT: This build is intended for Lehigh sunlab machines only.**
+
+## Organization
+- All Java source code is in `jak325/jak325.java`
+- All PL/SQL functions and procedures are saved in the `pl-and-sql` directory
+- Tables are in `tables/hoteltable.sql`
+- Code to insert into tables are in the `tables/inserts` directory (some manual adjustments were made beyond this to ensure "interesting" data)
 
 ## Time Traveling [IMPORTANT]
 This program uses December 8th, 1976 @ 4pm EST, the date of release of Hotel California as its `now` time.
@@ -109,10 +121,6 @@ Room numbers that exist in this hotel but are already clean:
 #### Notes
 - Rooms are marked as unclean and vacant in the check-out procedure as opposed to in a trigger
 
-## Address Formatting
-
-Addresses are stored in the format `Street address, City, State Zip`
-
-Example: `7005 Shady Ln Dr, Freehold, New Jersey 07728`
-
-Date of release: December 8, 1976
+## ER Design
+Unfortunately, my rushed ER diagram did not suffice for this project, so I needed to make some changes.
+The updated diagram is a pdf that can be found in this directory under the name `Jon Klein - Updated ER Design.pdf`

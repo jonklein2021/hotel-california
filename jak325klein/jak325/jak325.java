@@ -1,4 +1,4 @@
-import java.sql.*; // LocalDate work as SQL timestamp objects
+import java.sql.*;
 import java.util.*;
 
 public class jak325 {
@@ -78,7 +78,7 @@ public class jak325 {
 
                         // Housekeeping Interface
                         /*
-                         * Logs a room as cleaned in DB after a room has been cleaned in a particular hotel
+                         * Log a room as cleaned in DB after a room has been cleaned in a particular hotel
                          */
 
                             System.out.println("Housekeeping Interface");
@@ -526,7 +526,7 @@ public class jak325 {
             }
             
         } catch (SQLException e) {
-            System.err.println("Error: Something went wrong.\nStack trace:");
+            System.err.println("SQL Error: Something went wrong.\nStack trace:");
             e.printStackTrace();
             System.exit(1);
         }
@@ -572,7 +572,7 @@ public class jak325 {
                     System.err.printf("No guests found under the name \"%s %s\". Please try again\n", fname, lname);
                 } else {
                     tryAgain = false;
-                    System.out.println("Found!\n");
+                    System.out.println("Found!");
                     System.out.printf("\n%-10s%-15s%-15s%-20s%-10s\n", "Guest ID", "First Name", "Last Name", "Phone Number", "Points");
                     do {
                         guestId = res1.getString("g_id");
@@ -641,7 +641,7 @@ public class jak325 {
                                 System.err.printf("No hotels in city \"%s\" found. Please try again.\n", city);
                             } else {
                                 tryAgain = false;
-                                System.out.println("Found!\n");
+                                System.out.println("Found!");
                                 System.out.printf("\n%-7s%-10s%-10s\n", "Index", "Hotel ID", "Hotel Address");
                                 do {
                                     hotels.add(res1.getString("h_id"));
@@ -1041,7 +1041,7 @@ public class jak325 {
             }
             
         } catch (SQLException e) {
-            System.err.println("Error: Something went wrong.\nStack trace:");
+            System.err.println("SQL Error: Something went wrong.\nStack trace:");
             e.printStackTrace();
             System.exit(1);
         }        
