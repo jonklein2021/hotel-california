@@ -4,7 +4,7 @@
 <br>
 
 ## Build Instructions
-Note: The following commands should be run in the `jak325klein` directory
+Note: The following commands should be run in the project root directory
 
 ### To Compile
 ```
@@ -13,13 +13,13 @@ make
 
 ### To Run
 ```
-java -jar jak325.jar
+java -jar Main.jar
 ```
 
-#### **IMPORTANT: This build is intended for Lehigh sunlab machines only.**
+#### **IMPORTANT: This build is intended for Lehigh sunlab machines only and depends on its database cluster.**
 
 ## Organization
-- All Java source code is in `jak325/jak325.java`
+- All Java source code is in `src/Main.java`
 - All PL/SQL functions and procedures are saved in the `pl-and-sql` directory
 - Tables are in `tables/hoteltable.sql`
 - Code to insert into tables are in the `tables/inserts` directory (some manual adjustments were made beyond this to ensure "interesting" data)

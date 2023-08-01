@@ -1,7 +1,7 @@
 import java.sql.*;
 import java.util.*;
 
-public class jak325 {
+public class Main {
     public static void main(String[] args) throws InterruptedException {
         Scanner s = new Scanner(System.in);
         final String url = "jdbc:oracle:thin:@edgar1.cse.lehigh.edu:1521:cse241";
